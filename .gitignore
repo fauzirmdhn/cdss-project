@@ -1,3 +1,4 @@
 cdss/
 datasets/
+models/
 *.env
