@@ -1,8 +1,3 @@
-"""
-Multi-Disease ML Model Training Script
-Handles: Diabetes, Hypertension, Cervical Cancer, Oral Cancer
-"""
-
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split, cross_val_score
@@ -19,8 +14,6 @@ import warnings
 warnings.filterwarnings('ignore')
 
 class DiseaseModelTrainer:
-    """Train and evaluate ML models for different diseases"""
-    
     def __init__(self, disease_name):
         self.disease_name = disease_name
         self.model = None
@@ -262,12 +255,12 @@ if __name__ == "__main__":
             'balance_strategy': 'smote'
         },
         'Cervical Cancer': {
-            'filepath': 'datasets/kag_risk_factors_cervical_cancer.csv',
+            'filepath': 'datasets/cervical-cancer/kag_risk_factors_cervical_cancer.csv',
             'target_col': 'Biopsy',
             'balance_strategy': 'combined'  # Highly imbalanced usually
         },
         'Oral Cancer': {
-            'filepath': 'datasets/oral_cancer_prediction_dataset.csv',
+            'filepath': 'datasets/oral-cancer/oral_cancer_prediction_dataset.csv',
             'target_col': 'Oral Cancer (Diagnosis)',
             'balance_strategy': 'smote'
         }
