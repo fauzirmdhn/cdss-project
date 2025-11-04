@@ -252,22 +252,22 @@ if __name__ == "__main__":
     # Configuration for each disease
     diseases = {
         'Diabetes': {
-            'filepath': 'diabetes_data.csv',
+            'filepath': 'datasets/diabetes/diabetes_012_health_indicators_BRFSS2015.csv',
             'target_col': 'Diabetes_012',
             'balance_strategy': 'smote'  # Good for 3-class imbalance
         },
         'Hypertension': {
-            'filepath': 'hypertension_data.csv',
+            'filepath': 'datasets/hipertensi.csv',
             'target_col': 'target',
             'balance_strategy': 'smote'
         },
         'Cervical Cancer': {
-            'filepath': 'cervical_cancer_data.csv',
+            'filepath': 'datasets/kag_risk_factors_cervical_cancer.csv',
             'target_col': 'Biopsy',
             'balance_strategy': 'combined'  # Highly imbalanced usually
         },
         'Oral Cancer': {
-            'filepath': 'oral_cancer_data.csv',
+            'filepath': 'datasets/oral_cancer_prediction_dataset.csv',
             'target_col': 'Oral Cancer (Diagnosis)',
             'balance_strategy': 'smote'
         }
