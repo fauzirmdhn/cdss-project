@@ -1,9 +1,9 @@
 """
-Disease Prediction API Backend
-Flask REST API for Diabetes, Hypertension, Cervical Cancer, and Oral Cancer prediction
+Integrated Disease Prediction API with Ultra-Advanced Recommendations
+Complete backend with ML predictions + comprehensive clinical recommendations
 """
 
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import joblib
 import pandas as pd
@@ -11,6 +11,19 @@ import numpy as np
 import os
 from datetime import datetime
 import traceback
+
+# Import the advanced recommendation engine
+import sys
+sys.path.append('.')  # Ensure current directory is in path
+
+# We'll import from the advanced_recommendation_system.py file you saved earlier
+try:
+    from recommendationsys import UltraAdvancedRecommendationEngine
+    ADVANCED_RECS_AVAILABLE = True
+    print("✓ Advanced recommendation engine loaded successfully")
+except ImportError:
+    ADVANCED_RECS_AVAILABLE = False
+    print("⚠️ Advanced recommendation engine not found - using basic recommendations")
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for frontend requests
@@ -60,15 +73,19 @@ class ModelLoader:
         """Get model for specific disease"""
         return self.models.get(disease.lower().replace(' ', '_'))
 
-# Initialize model loader
+# Initialize model loader and recommendation engine
 model_loader = ModelLoader()
+
+if ADVANCED_RECS_AVAILABLE:
+    recommendation_engine = UltraAdvancedRecommendationEngine()
+    print("✓ Recommendation engine initialized")
 
 # ============================================================================
 # PREDICTION FUNCTIONS
 # ============================================================================
 
 def predict_disease(disease_name, input_data):
-    """Make prediction for a specific disease"""
+    """Make prediction for a specific disease with advanced recommendations"""
     
     # Get model components
     model_info = model_loader.get_model(disease_name)
@@ -91,6 +108,9 @@ def predict_disease(disease_name, input_data):
             df = pd.DataFrame([input_data])
         else:
             df = input_data
+        
+        # Store original input for recommendations
+        original_input = input_data.copy() if isinstance(input_data, dict) else input_data.to_dict('records')[0]
         
         # Ensure all required features are present
         missing_features = []
@@ -128,21 +148,36 @@ def predict_disease(disease_name, input_data):
         for i, class_name in enumerate(class_names):
             prob_dict[str(class_name)] = float(probabilities[i])
         
-        # Determine risk level
+        # Determine confidence
         confidence = float(max(probabilities))
-        risk_level = 'High' if confidence > 0.7 else 'Medium' if confidence > 0.5 else 'Low'
         
-        # Generate recommendations
-        recommendations = generate_recommendations(disease_name, prediction_label, confidence)
+        # Generate advanced recommendations
+        if ADVANCED_RECS_AVAILABLE:
+            try:
+                recommendations = recommendation_engine.generate_comprehensive_recommendations(
+                    disease=disease_name,
+                    prediction=str(prediction_label),
+                    confidence=confidence,
+                    patient_data=original_input
+                )
+                recommendations_available = True
+            except Exception as e:
+                print(f"Error generating advanced recommendations: {str(e)}")
+                recommendations = generate_basic_recommendations(disease_name, prediction_label, confidence)
+                recommendations_available = False
+        else:
+            recommendations = generate_basic_recommendations(disease_name, prediction_label, confidence)
+            recommendations_available = False
         
         return {
             'success': True,
             'disease': disease_name.replace('_', ' ').title(),
-            'prediction': prediction_label,
+            'prediction': str(prediction_label),
             'confidence': confidence,
-            'risk_level': risk_level,
+            'risk_level': determine_simple_risk_level(confidence),
             'probabilities': prob_dict,
             'recommendations': recommendations,
+            'advanced_recommendations_enabled': recommendations_available,
             'timestamp': datetime.now().isoformat(),
             'missing_features': missing_features if missing_features else None
         }
@@ -154,96 +189,52 @@ def predict_disease(disease_name, input_data):
             'traceback': traceback.format_exc()
         }
 
-def generate_recommendations(disease, prediction, confidence):
-    """Generate health recommendations based on prediction"""
+def determine_simple_risk_level(confidence):
+    """Simple risk level determination for backward compatibility"""
+    if confidence > 0.8:
+        return 'High'
+    elif confidence > 0.6:
+        return 'Medium'
+    else:
+        return 'Low'
+
+def generate_basic_recommendations(disease, prediction, confidence):
+    """Basic fallback recommendations if advanced engine not available"""
     
-    recommendations = []
+    recommendations = {
+        'immediate_actions': [],
+        'lifestyle_modifications': [],
+        'follow_up_schedule': {},
+        'warning_signs': []
+    }
     
-    if disease == 'diabetes':
-        if prediction in ['1', '2', 1, 2]:  # Prediabetes or Diabetes
-            recommendations = [
-                "Consult with an endocrinologist for proper diagnosis and treatment plan",
-                "Monitor blood glucose levels regularly",
-                "Adopt a low-glycemic diet rich in vegetables and whole grains",
-                "Engage in at least 150 minutes of moderate exercise per week",
-                "Maintain a healthy weight (BMI 18.5-24.9)",
-                "Consider medication if prescribed by your doctor",
-                "Regular check-ups for complications (eyes, kidneys, feet)"
-            ]
-        else:
-            recommendations = [
-                "Maintain healthy lifestyle to prevent diabetes",
-                "Regular health screenings every 1-2 years",
-                "Keep BMI in healthy range",
-                "Stay physically active"
-            ]
-    
-    elif disease == 'hypertension':
-        if prediction in ['1', 1, 'Yes']:
-            recommendations = [
-                "Consult a cardiologist for proper blood pressure management",
-                "Reduce sodium intake (less than 2,300mg per day)",
-                "Follow DASH diet (fruits, vegetables, low-fat dairy)",
-                "Exercise regularly (30 minutes most days)",
-                "Limit alcohol consumption",
-                "Manage stress through meditation or yoga",
-                "Take prescribed medications as directed",
-                "Monitor blood pressure at home regularly"
-            ]
-        else:
-            recommendations = [
-                "Maintain heart-healthy lifestyle",
-                "Regular blood pressure checks",
-                "Limit sodium and maintain healthy diet",
-                "Stay active and manage stress"
-            ]
-    
-    elif disease == 'cervical_cancer':
-        if prediction in ['1', 1, 'Yes']:
-            recommendations = [
-                "URGENT: Consult a gynecologic oncologist immediately",
-                "Schedule comprehensive pelvic examination",
-                "Get HPV testing and Pap smear",
-                "Discuss colposcopy and biopsy with your doctor",
-                "Consider HPV vaccination if not already vaccinated",
-                "Discuss treatment options (surgery, radiation, chemotherapy)",
-                "Regular follow-up appointments are critical",
-                "Seek support from cancer support groups"
-            ]
-        else:
-            recommendations = [
-                "Continue regular cervical cancer screenings",
-                "HPV vaccination if eligible",
-                "Practice safe sex",
-                "Avoid smoking",
-                "Regular Pap smears as recommended by age"
-            ]
-    
-    elif disease == 'oral_cancer':
-        if prediction in ['Yes', 'yes', 1]:
-            recommendations = [
-                "URGENT: Consult an oral and maxillofacial surgeon or oncologist",
-                "Get comprehensive oral examination and biopsy",
-                "Discuss imaging studies (CT, MRI, PET scan)",
-                "Stop all tobacco and alcohol use immediately",
-                "Consider treatment options based on staging",
-                "Maintain excellent oral hygiene",
-                "Nutritional support may be needed during treatment",
-                "Join oral cancer support groups"
-            ]
-        else:
-            recommendations = [
-                "Regular dental check-ups every 6 months",
-                "Avoid tobacco in all forms",
-                "Limit alcohol consumption",
-                "Maintain good oral hygiene",
-                "Eat a diet rich in fruits and vegetables",
-                "Protect lips from sun exposure"
-            ]
-    
-    # Add confidence-based disclaimer
-    if confidence < 0.7:
-        recommendations.insert(0, "⚠️ Note: Prediction confidence is moderate. Additional testing recommended.")
+    if prediction in ['1', '2', 1, 2, 'Yes', 'yes']:
+        recommendations['immediate_actions'] = [
+            f"Schedule appointment with healthcare provider for {disease.replace('_', ' ')}",
+            "Begin tracking symptoms and relevant health metrics",
+            "Review current medications with doctor",
+            "Consider lifestyle modifications"
+        ]
+        
+        recommendations['lifestyle_modifications'] = [
+            "Maintain a healthy diet",
+            "Exercise regularly (consult doctor first)",
+            "Manage stress levels",
+            "Get adequate sleep (7-9 hours)",
+            "Avoid smoking and limit alcohol"
+        ]
+        
+        recommendations['warning_signs'] = [
+            "Worsening of current symptoms",
+            "New or unusual symptoms",
+            "Side effects from medications",
+            "Signs of complications"
+        ]
+    else:
+        recommendations['immediate_actions'] = [
+            "Continue healthy lifestyle practices",
+            "Schedule routine health screening"
+        ]
     
     return recommendations
 
@@ -255,17 +246,30 @@ def generate_recommendations(disease, prediction, confidence):
 def home():
     """API home endpoint"""
     return jsonify({
-        'message': 'Disease Prediction API',
-        'version': '1.0',
+        'message': 'Disease Prediction API with Advanced Recommendations',
+        'version': '2.0',
+        'advanced_recommendations': ADVANCED_RECS_AVAILABLE,
         'available_models': list(model_loader.models.keys()),
         'endpoints': {
-            '/predict/diabetes': 'POST - Predict diabetes',
-            '/predict/hypertension': 'POST - Predict hypertension',
-            '/predict/cervical_cancer': 'POST - Predict cervical cancer',
-            '/predict/oral_cancer': 'POST - Predict oral cancer',
+            '/predict/diabetes': 'POST - Predict diabetes with comprehensive recommendations',
+            '/predict/hypertension': 'POST - Predict hypertension with recommendations',
+            '/predict/cervical_cancer': 'POST - Predict cervical cancer with recommendations',
+            '/predict/oral_cancer': 'POST - Predict oral cancer with recommendations',
             '/predict/all': 'POST - Predict all diseases',
             '/health': 'GET - Health check',
-            '/models/info': 'GET - Get model information'
+            '/models/info': 'GET - Get model information',
+            '/features/<disease>': 'GET - Get required features for disease',
+            '/visualization': 'GET - View recommendation hierarchy visualization'
+        },
+        'features': {
+            'ml_prediction': True,
+            'risk_stratification': ADVANCED_RECS_AVAILABLE,
+            'clinical_guidelines': ADVANCED_RECS_AVAILABLE,
+            'treatment_pathways': ADVANCED_RECS_AVAILABLE,
+            'medication_algorithms': ADVANCED_RECS_AVAILABLE,
+            'smart_goals': ADVANCED_RECS_AVAILABLE,
+            'monitoring_schedules': ADVANCED_RECS_AVAILABLE,
+            'cost_considerations': ADVANCED_RECS_AVAILABLE
         }
     })
 
@@ -275,6 +279,7 @@ def health_check():
     return jsonify({
         'status': 'healthy',
         'models_loaded': len(model_loader.models),
+        'advanced_recommendations': ADVANCED_RECS_AVAILABLE,
         'timestamp': datetime.now().isoformat()
     })
 
@@ -294,7 +299,7 @@ def models_info():
 
 @app.route('/predict/diabetes', methods=['POST'])
 def predict_diabetes():
-    """Predict diabetes"""
+    """Predict diabetes with advanced recommendations"""
     try:
         data = request.get_json()
         result = predict_disease('diabetes', data)
@@ -304,7 +309,7 @@ def predict_diabetes():
 
 @app.route('/predict/hypertension', methods=['POST'])
 def predict_hypertension():
-    """Predict hypertension"""
+    """Predict hypertension with advanced recommendations"""
     try:
         data = request.get_json()
         result = predict_disease('hypertension', data)
@@ -314,7 +319,7 @@ def predict_hypertension():
 
 @app.route('/predict/cervical_cancer', methods=['POST'])
 def predict_cervical_cancer():
-    """Predict cervical cancer"""
+    """Predict cervical cancer with advanced recommendations"""
     try:
         data = request.get_json()
         result = predict_disease('cervical_cancer', data)
@@ -324,7 +329,7 @@ def predict_cervical_cancer():
 
 @app.route('/predict/oral_cancer', methods=['POST'])
 def predict_oral_cancer():
-    """Predict oral cancer"""
+    """Predict oral cancer with advanced recommendations"""
     try:
         data = request.get_json()
         result = predict_disease('oral_cancer', data)
@@ -370,6 +375,41 @@ def get_features(disease):
         'classes': metadata['class_names']
     })
 
+@app.route('/visualization')
+def visualization():
+    """Serve the recommendation hierarchy visualization"""
+    return send_from_directory('.', 'recommendation_hierarchy.html')
+
+@app.route('/test/diabetes', methods=['GET'])
+def test_diabetes():
+    """Test endpoint with sample diabetes data"""
+    sample_data = {
+        'HighBP': 1,
+        'HighChol': 1,
+        'CholCheck': 1,
+        'BMI': 32.5,
+        'Smoker': 1,
+        'Stroke': 0,
+        'HeartDiseaseorAttack': 0,
+        'PhysActivity': 1,
+        'Fruits': 1,
+        'Veggies': 1,
+        'HvyAlcoholConsump': 0,
+        'AnyHealthcare': 1,
+        'NoDocbcCost': 0,
+        'GenHlth': 3,
+        'MentHlth': 5,
+        'PhysHlth': 10,
+        'DiffWalk': 0,
+        'Sex': 1,
+        'Age': 58,
+        'Education': 5,
+        'Income': 6
+    }
+    
+    result = predict_disease('diabetes', sample_data)
+    return jsonify(result)
+
 # ============================================================================
 # ERROR HANDLERS
 # ============================================================================
@@ -387,12 +427,28 @@ def internal_error(error):
 # ============================================================================
 
 if __name__ == '__main__':
-    print("\n" + "="*60)
-    print("Disease Prediction API Server")
-    print("="*60)
+    # Server configuration
+    HOST = '192.168.18.8'
+    PORT = 5000
+    
+    print("\n" + "="*70)
+    print("Disease Prediction API Server v2.0")
+    print("With Ultra-Advanced Clinical Recommendations")
+    print("="*70)
     print(f"Models loaded: {len(model_loader.models)}")
     print(f"Available diseases: {list(model_loader.models.keys())}")
-    print("\nStarting server on http://localhost:5000")
-    print("="*60 + "\n")
+    print(f"Advanced recommendations: {'✓ ENABLED' if ADVANCED_RECS_AVAILABLE else '✗ DISABLED (using basic)'}")
+    print(f"\nServer Host: {HOST}")
+    print(f"Server Port: {PORT}")
+    print("\nEndpoints:")
+    print(f"  - http://{HOST}:{PORT}/ (API home)")
+    print(f"  - http://{HOST}:{PORT}/health (health check)")
+    print(f"  - http://{HOST}:{PORT}/models/info (model details)")
+    print(f"  - http://{HOST}:{PORT}/predict/diabetes (POST prediction)")
+    print(f"  - http://{HOST}:{PORT}/test/diabetes (GET test endpoint)")
+    print(f"  - http://{HOST}:{PORT}/visualization (recommendation hierarchy)")
+    print(f"\nStarting server on http://{HOST}:{PORT}")
+    print("="*70 + "\n")
     
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    # Start the Flask development server
+    app.run(debug=True, host=HOST, port=PORT)
