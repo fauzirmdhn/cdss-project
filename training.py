@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.preprocessing import StandardScaler, LabelEncoder
+from sklearn.impute import SimpleImputer
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import classification_report, confusion_matrix, accuracy_score, roc_auc_score
 from imblearn.over_sampling import SMOTE
@@ -18,6 +19,7 @@ class DiseaseModelTrainer:
         self.disease_name = disease_name
         self.model = None
         self.scaler = None
+        self.imputer = None
         self.label_encoder = None
         self.feature_names = None
         self.class_names = None
@@ -113,9 +115,15 @@ class DiseaseModelTrainer:
         )
         
         # Scale features
+        # Impute missing values (fit on training data)
+        self.imputer = SimpleImputer(strategy='median')
+        X_train_imputed = self.imputer.fit_transform(X_train_balanced)
+        X_test_imputed = self.imputer.transform(X_test)
+
+        # Scale features
         self.scaler = StandardScaler()
-        X_train_scaled = self.scaler.fit_transform(X_train_balanced)
-        X_test_scaled = self.scaler.transform(X_test)
+        X_train_scaled = self.scaler.fit_transform(X_train_imputed)
+        X_test_scaled = self.scaler.transform(X_test_imputed)
         
         # Train Random Forest (good for medical data)
         print(f"\nTraining Random Forest model...")
@@ -190,6 +198,8 @@ class DiseaseModelTrainer:
         
         joblib.dump(self.model, f'{model_dir}/{model_name}_model.pkl')
         joblib.dump(self.scaler, f'{model_dir}/{model_name}_scaler.pkl')
+        if self.imputer:
+            joblib.dump(self.imputer, f'{model_dir}/{model_name}_imputer.pkl')
         
         if self.label_encoder:
             joblib.dump(self.label_encoder, f'{model_dir}/{model_name}_label_encoder.pkl')
@@ -217,9 +227,19 @@ class DiseaseModelTrainer:
         
         # Reorder columns to match training data
         input_data = input_data[self.feature_names]
-        
+
+        # Convert inputs to numeric where possible so imputer can work
+        for col in input_data.columns:
+            input_data[col] = pd.to_numeric(input_data[col], errors='coerce')
+
+        # Impute missing values if imputer available
+        if self.imputer:
+            input_imputed = self.imputer.transform(input_data)
+        else:
+            input_imputed = input_data.values
+
         # Scale
-        input_scaled = self.scaler.transform(input_data)
+        input_scaled = self.scaler.transform(input_imputed)
         
         # Predict
         prediction = self.model.predict(input_scaled)[0]

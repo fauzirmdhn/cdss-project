@@ -53,6 +53,15 @@ class ModelLoader:
                     encoder_path = f'{self.model_dir}/{disease}_label_encoder.pkl'
                     if os.path.exists(encoder_path):
                         self.models[disease]['label_encoder'] = joblib.load(encoder_path)
+
+                    # Load imputer if exists (added by training pipeline)
+                    imputer_path = f'{self.model_dir}/{disease}_imputer.pkl'
+                    if os.path.exists(imputer_path):
+                        try:
+                            self.models[disease]['imputer'] = joblib.load(imputer_path)
+                            print(f"✓ Loaded imputer for {disease}")
+                        except Exception:
+                            print(f"⚠️ Failed to load imputer for {disease}")
                     
                     print(f"✓ Loaded {disease} model successfully")
                 else:
@@ -116,14 +125,23 @@ def predict_disease(disease_name, input_data):
         
         # Handle any string values (encode them)
         for col in df.columns:
-            if df[col].dtype == 'object':
-                try:
-                    df[col] = pd.to_numeric(df[col])
-                except:
-                    df[col] = 0
+            # Try to convert to numeric; leave NaNs for imputer to handle
+            df[col] = pd.to_numeric(df[col], errors='coerce')
         
+        # Impute missing values (if imputer available)
+        if 'imputer' in model_info and model_info['imputer'] is not None:
+            try:
+                X_imputed = model_info['imputer'].transform(df)
+            except Exception as e:
+                # Fallback: if imputer fails, attempt to fill with median per-column
+                print(f"Imputer error for {disease_name}: {e}")
+                X_imputed = df.fillna(df.median()).values
+        else:
+            # If no imputer, fallback to filling NaNs with column median
+            X_imputed = df.fillna(df.median()).values
+
         # Scale features
-        X_scaled = scaler.transform(df)
+        X_scaled = scaler.transform(X_imputed)
         
         # Make prediction
         prediction = model.predict(X_scaled)[0]

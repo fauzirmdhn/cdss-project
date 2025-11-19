@@ -895,9 +895,12 @@
                 if (field.type === 'checkbox') {
                     data[field.name] = input.checked ? 1 : 0;
                 } else if (field.type === 'number' || field.type === 'range') {
-                    data[field.name] = parseFloat(input.value);
+                    // If user left numeric field empty, send null so backend can impute
+                    data[field.name] = input.value === '' ? null : parseFloat(input.value);
+                } else if (field.type === 'select') {
+                    data[field.name] = input.value === '' ? null : input.value;
                 } else {
-                    data[field.name] = input.value;
+                    data[field.name] = input.value === '' ? null : input.value;
                 }
             });
 
@@ -936,7 +939,7 @@
             const requiredFields = allPossibleFields[selectedDisease] || [];
             requiredFields.forEach(field => {
                 if (!(field in data)) {
-                    data[field] = 0;
+                    data[field] = null;
                 }
             });
 
@@ -982,6 +985,20 @@
                 displayError('Failed to connect to API: ' + error.message);
             }
         }
+
+        // Add a small informational note about missing-value handling
+        (function addImputeNote() {
+            const inputPanel = document.querySelector('.input-panel');
+            if (!document.getElementById('imputeNote')) {
+                const note = document.createElement('div');
+                note.id = 'imputeNote';
+                note.style.marginTop = '10px';
+                note.style.fontSize = '0.9em';
+                note.style.color = '#475569';
+                note.innerHTML = 'Note: Empty numeric fields are allowed — the backend will impute missing values before prediction.';
+                inputPanel.appendChild(note);
+            }
+        })();
 
         // Display Results
         function displayResults(result) {
