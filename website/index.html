@@ -1,0 +1,1383 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Predisksi Penyakit Degeneratif</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #667eea;
+            --primary-dark: #5568d3;
+            --secondary: #764ba2;
+            --success: #48bb78;
+            --warning: #ed8936;
+            --danger: #f56565;
+            --info: #4299e1;
+            --light: #f7fafc;
+            --dark: #2d3748;
+            --gray: #718096;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            color: var(--primary);
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header .subtitle {
+            color: var(--gray);
+            font-size: 1.2em;
+        }
+
+        .header .api-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 15px;
+            padding: 10px 20px;
+            background: var(--light);
+            border-radius: 25px;
+            font-size: 0.9em;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.online {
+            background: var(--success);
+        }
+
+        .status-dot.offline {
+            background: var(--danger);
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        /* Main Layout */
+        .main-content {
+            display: grid;
+            grid-template-columns: 400px 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        /* Left Panel - Input */
+        .input-panel {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            max-height: calc(100vh - 200px);
+            overflow-y: auto;
+        }
+
+        .panel-title {
+            font-size: 1.5em;
+            color: var(--dark);
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid var(--primary);
+        }
+
+        .disease-selector {
+            margin-bottom: 30px;
+        }
+
+        .disease-cards {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .disease-card {
+            padding: 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .disease-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .disease-card.selected {
+            border-color: var(--primary);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .disease-icon {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .disease-name {
+            font-weight: bold;
+            font-size: 1em;
+        }
+
+        .form-section {
+            margin-bottom: 25px;
+        }
+
+        .form-section h3 {
+            color: var(--dark);
+            font-size: 1.1em;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--dark);
+            font-weight: 500;
+            font-size: 0.95em;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .form-group input[type="range"] {
+            padding: 0;
+        }
+
+        .range-value {
+            display: inline-block;
+            margin-left: 10px;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: var(--light);
+            color: var(--dark);
+            margin-top: 10px;
+        }
+
+        .btn-secondary:hover {
+            background: #e2e8f0;
+        }
+
+        /* Right Panel - Results */
+        .results-panel {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            max-height: calc(100vh - 200px);
+            overflow-y: auto;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--gray);
+        }
+
+        .empty-state-icon {
+            font-size: 5em;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 5px solid #e2e8f0;
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Prediction Results */
+        .prediction-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+        }
+
+        .prediction-title {
+            font-size: 1.3em;
+            margin-bottom: 15px;
+        }
+
+        .prediction-result {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .prediction-label {
+            font-size: 2em;
+            font-weight: bold;
+        }
+
+        .confidence-badge {
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        .confidence-high {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .risk-level {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 15px;
+            font-size: 0.9em;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .risk-critical {
+            background: #f56565;
+            color: white;
+        }
+
+        .risk-high {
+            background: #ed8936;
+            color: white;
+        }
+
+        .risk-moderate {
+            background: #ecc94b;
+            color: white;
+        }
+
+        .risk-low {
+            background: #48bb78;
+            color: white;
+        }
+
+        .risk-minimal {
+            background: #4299e1;
+            color: white;
+        }
+
+        .probabilities {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .prob-card {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .prob-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+
+        .prob-value {
+            font-size: 1.8em;
+            font-weight: bold;
+        }
+
+        /* Recommendations */
+        .recommendations-section {
+            margin-top: 25px;
+        }
+
+        .rec-category {
+            background: var(--light);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--primary);
+        }
+
+        .rec-category h3 {
+            color: var(--dark);
+            font-size: 1.2em;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .rec-list {
+            list-style: none;
+        }
+
+        .rec-item {
+            padding: 12px;
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .rec-icon {
+            font-size: 1.3em;
+            flex-shrink: 0;
+        }
+
+        .rec-text {
+            flex: 1;
+            color: var(--dark);
+            line-height: 1.5;
+        }
+
+        .rec-goal {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 4px solid var(--success);
+        }
+
+        .rec-goal-title {
+            font-weight: bold;
+            color: var(--dark);
+            margin-bottom: 8px;
+        }
+
+        .rec-goal-detail {
+            font-size: 0.9em;
+            color: var(--gray);
+            margin-top: 5px;
+        }
+
+        .expandable-section {
+            margin-top: 10px;
+        }
+
+        .expand-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.3s;
+        }
+
+        .expand-btn:hover {
+            background: var(--primary-dark);
+        }
+
+        .expandable-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .expandable-content.expanded {
+            max-height: 2000px;
+        }
+
+        /* Alerts */
+        .alert {
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .alert-icon {
+            font-size: 1.5em;
+        }
+
+        .alert-danger {
+            background: #fff5f5;
+            border-left: 4px solid var(--danger);
+            color: #c53030;
+        }
+
+        .alert-warning {
+            background: #fffaf0;
+            border-left: 4px solid var(--warning);
+            color: #c05621;
+        }
+
+        .alert-info {
+            background: #ebf8ff;
+            border-left: 4px solid var(--info);
+            color: #2c5282;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+
+            .input-panel,
+            .results-panel {
+                max-height: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .disease-cards {
+                grid-template-columns: 1fr;
+            }
+
+            .probabilities {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-dark);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🏥 MediPredict</h1>
+            <p class="subtitle">AI-Powered Disease Prediction & Health Recommendations</p>
+            <div class="api-status">
+                <div class="status-dot online" id="statusDot"></div>
+                <span id="statusText">Checking API...</span>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Left Panel - Input Form -->
+            <div class="input-panel">
+                <h2 class="panel-title">📋 Patient Information</h2>
+
+                <!-- Disease Selection -->
+                <div class="disease-selector">
+                    <h3>Select Disease to Screen:</h3>
+                    <div class="disease-cards">
+                        <div class="disease-card" data-disease="diabetes">
+                            <div class="disease-icon">🩸</div>
+                            <div class="disease-name">Diabetes</div>
+                        </div>
+                        <div class="disease-card" data-disease="hypertension">
+                            <div class="disease-icon">❤️</div>
+                            <div class="disease-name">Hypertension</div>
+                        </div>
+                        <div class="disease-card" data-disease="cervical_cancer">
+                            <div class="disease-icon">🎗️</div>
+                            <div class="disease-name">Cervical Cancer</div>
+                        </div>
+                        <div class="disease-card" data-disease="oral_cancer">
+                            <div class="disease-icon">👄</div>
+                            <div class="disease-name">Oral Cancer</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dynamic Form -->
+                <div id="patientForm"></div>
+
+                <!-- Action Buttons -->
+                <button class="btn btn-primary" id="predictBtn" disabled>
+                    <span>🔮</span>
+                    <span>Get Prediction & Recommendations</span>
+                </button>
+                <button class="btn btn-secondary" id="resetBtn">
+                    <span>🔄</span>
+                    <span>Reset Form</span>
+                </button>
+            </div>
+
+            <!-- Right Panel - Results -->
+            <div class="results-panel">
+                <div id="resultsContent">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📊</div>
+                        <h3>No Prediction Yet</h3>
+                        <p>Select a disease and fill in the patient information to get started.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const API_BASE_URL = 'http://192.168.18.8:5000';
+
+        let selectedDisease = null;
+        let diseaseFeatures = {};
+
+        // Disease form configurations
+        const diseaseConfigs = {
+            diabetes: {
+                name: 'Diabetes',
+                icon: '🩸',
+                fields: [
+                    { name: 'Age', type: 'number', min: 1, max: 120, default: 50, category: 'Demographics' },
+                    { name: 'Sex', type: 'select', options: [{ v: 0, l: 'Female' }, { v: 1, l: 'Male' }], category: 'Demographics' },
+                    { name: 'BMI', type: 'number', min: 10, max: 60, step: 0.1, default: 25, category: 'Physical' },
+                    { name: 'HighBP', type: 'checkbox', label: 'High Blood Pressure', category: 'Medical History' },
+                    { name: 'HighChol', type: 'checkbox', label: 'High Cholesterol', category: 'Medical History' },
+                    { name: 'CholCheck', type: 'checkbox', label: 'Cholesterol Check in 5 years', category: 'Medical History' },
+                    { name: 'Smoker', type: 'checkbox', label: 'Smoker', category: 'Lifestyle' },
+                    { name: 'Stroke', type: 'checkbox', label: 'History of Stroke', category: 'Medical History' },
+                    { name: 'HeartDiseaseorAttack', type: 'checkbox', label: 'Heart Disease or Attack', category: 'Medical History' },
+                    { name: 'PhysActivity', type: 'checkbox', label: 'Physical Activity (past 30 days)', category: 'Lifestyle' },
+                    { name: 'Fruits', type: 'checkbox', label: 'Consume Fruits Daily', category: 'Lifestyle' },
+                    { name: 'Veggies', type: 'checkbox', label: 'Consume Vegetables Daily', category: 'Lifestyle' },
+                    { name: 'HvyAlcoholConsump', type: 'checkbox', label: 'Heavy Alcohol Consumption', category: 'Lifestyle' },
+                    { name: 'AnyHealthcare', type: 'checkbox', label: 'Has Healthcare Coverage', category: 'Healthcare' },
+                    { name: 'NoDocbcCost', type: 'checkbox', label: 'Could not see doctor due to cost', category: 'Healthcare' },
+                    { name: 'GenHlth', type: 'range', min: 1, max: 5, default: 3, label: 'General Health (1=Excellent, 5=Poor)', category: 'Health Status' },
+                    { name: 'MentHlth', type: 'range', min: 0, max: 30, default: 0, label: 'Mental Health (days not good in past 30)', category: 'Health Status' },
+                    { name: 'PhysHlth', type: 'range', min: 0, max: 30, default: 0, label: 'Physical Health (days not good in past 30)', category: 'Health Status' },
+                    { name: 'DiffWalk', type: 'checkbox', label: 'Difficulty Walking', category: 'Physical' },
+                    { name: 'Education', type: 'range', min: 1, max: 6, default: 4, label: 'Education Level (1-6)', category: 'Demographics' },
+                    { name: 'Income', type: 'range', min: 1, max: 8, default: 5, label: 'Income Level (1-8)', category: 'Demographics' }
+                ]
+            },
+            hypertension: {
+                name: 'Hypertension',
+                icon: '❤️',
+                fields: [
+                    { name: 'age', type: 'number', min: 1, max: 120, default: 50, category: 'Demographics' },
+                    { name: 'sex', type: 'select', options: [{ v: 0, l: 'Female' }, { v: 1, l: 'Male' }], category: 'Demographics' },
+                    { name: 'cp', type: 'range', min: 0, max: 3, default: 0, label: 'Chest Pain Type (0-3)', category: 'Symptoms' },
+                    { name: 'trestbps', type: 'number', min: 80, max: 200, default: 120, label: 'Resting Blood Pressure (mmHg)', category: 'Vitals' },
+                    { name: 'chol', type: 'number', min: 100, max: 400, default: 200, label: 'Serum Cholesterol (mg/dl)', category: 'Lab Values' },
+                    { name: 'fbs', type: 'checkbox', label: 'Fasting Blood Sugar > 120 mg/dl', category: 'Lab Values' },
+                    { name: 'restecg', type: 'range', min: 0, max: 2, default: 0, label: 'Resting ECG Results (0-2)', category: 'Tests' },
+                    { name: 'thalach', type: 'number', min: 60, max: 220, default: 150, label: 'Max Heart Rate Achieved', category: 'Vitals' },
+                    { name: 'exang', type: 'checkbox', label: 'Exercise Induced Angina', category: 'Symptoms' },
+                    { name: 'oldpeak', type: 'number', min: 0, max: 10, step: 0.1, default: 0, label: 'ST Depression', category: 'Tests' },
+                    { name: 'slope', type: 'range', min: 0, max: 2, default: 1, label: 'Slope of Peak Exercise ST Segment', category: 'Tests' },
+                    { name: 'ca', type: 'range', min: 0, max: 4, default: 0, label: 'Number of Major Vessels (0-4)', category: 'Tests' },
+                    { name: 'thal', type: 'range', min: 0, max: 3, default: 2, label: 'Thalassemia (0-3)', category: 'Tests' }
+                ]
+            },
+            // Simplified versions for space - you can expand these
+            cervical_cancer: {
+                name: 'Cervical Cancer',
+                icon: '🎗️',
+                fields: [
+                    { name: 'Age', type: 'number', min: 1, max: 120, default: 30, category: 'Demographics' },
+                    { name: 'Number of sexual partners', type: 'number', min: 0, max: 20, default: 1, category: 'Risk Factors' },
+                    { name: 'First sexual intercourse', type: 'number', min: 10, max: 40, default: 18, label: 'Age at First Sexual Intercourse', category: 'Risk Factors' },
+                    { name: 'Num of pregnancies', type: 'number', min: 0, max: 20, default: 0, category: 'Medical History' },
+                    { name: 'Smokes', type: 'checkbox', label: 'Smoker', category: 'Lifestyle' },
+                    { name: 'Hormonal Contraceptives', type: 'checkbox', label: 'Uses Hormonal Contraceptives', category: 'Medical History' },
+                    { name: 'IUD', type: 'checkbox', label: 'Uses IUD', category: 'Medical History' },
+                    { name: 'STDs', type: 'checkbox', label: 'History of STDs', category: 'Medical History' },
+                    { name: 'STDs:HPV', type: 'checkbox', label: 'HPV Infection', category: 'Medical History' }
+                ]
+            },
+            oral_cancer: {
+                name: 'Oral Cancer',
+                icon: '👄',
+                fields: [
+                    { name: 'Age', type: 'number', min: 1, max: 120, default: 50, category: 'Demographics' },
+                    { name: 'Gender', type: 'select', options: [{ v: 0, l: 'Female' }, { v: 1, l: 'Male' }], category: 'Demographics' },
+                    { name: 'Tobacco Use', type: 'checkbox', label: 'Tobacco Use', category: 'Lifestyle' },
+                    { name: 'Alcohol Consumption', type: 'checkbox', label: 'Alcohol Consumption', category: 'Lifestyle' },
+                    { name: 'HPV Infection', type: 'checkbox', label: 'HPV Infection', category: 'Risk Factors' },
+                    { name: 'Betel Quid Use', type: 'checkbox', label: 'Betel Quid Use', category: 'Lifestyle' },
+                    { name: 'Chronic Sun Exposure', type: 'checkbox', label: 'Chronic Sun Exposure', category: 'Risk Factors' },
+                    { name: 'Poor Oral Hygiene', type: 'checkbox', label: 'Poor Oral Hygiene', category: 'Lifestyle' },
+                    { name: 'Family History of Cancer', type: 'checkbox', label: 'Family History of Cancer', category: 'Medical History' },
+                    { name: 'Oral Lesions', type: 'checkbox', label: 'Oral Lesions Present', category: 'Symptoms' },
+                    { name: 'Unexplained Bleeding', type: 'checkbox', label: 'Unexplained Bleeding', category: 'Symptoms' },
+                    { name: 'Difficulty Swallowing', type: 'checkbox', label: 'Difficulty Swallowing', category: 'Symptoms' },
+                    { name: 'White or Red Patches in Mouth', type: 'checkbox', label: 'White or Red Patches', category: 'Symptoms' }
+                ]
+            }
+        };
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAPIStatus();
+            setupEventListeners();
+        });
+
+        // Check API Status
+        async function checkAPIStatus() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/health`);
+                const data = await response.json();
+
+                document.getElementById('statusDot').className = 'status-dot online';
+                document.getElementById('statusText').textContent = `API Online - ${data.models_loaded} models loaded`;
+            } catch (error) {
+                document.getElementById('statusDot').className = 'status-dot offline';
+                document.getElementById('statusText').textContent = 'API Offline';
+                console.error('API Error:', error);
+            }
+        }
+
+        // Setup Event Listeners
+        function setupEventListeners() {
+            // Disease card selection
+            document.querySelectorAll('.disease-card').forEach(card => {
+                card.addEventListener('click', () => selectDisease(card.dataset.disease));
+            });
+
+            // Buttons
+            document.getElementById('predictBtn').addEventListener('click', makePrediction);
+            document.getElementById('resetBtn').addEventListener('click', resetForm);
+        }
+
+        // Select Disease
+        function selectDisease(disease) {
+            selectedDisease = disease;
+
+            // Update UI
+            document.querySelectorAll('.disease-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            event.target.closest('.disease-card').classList.add('selected');
+
+            // Generate form
+            generateForm(disease);
+
+            // Enable predict button
+            document.getElementById('predictBtn').disabled = false;
+        }
+
+        // Generate Form
+        function generateForm(disease) {
+            const config = diseaseConfigs[disease];
+            const formContainer = document.getElementById('patientForm');
+
+            // Group fields by category
+            const categories = {};
+            config.fields.forEach(field => {
+                if (!categories[field.category]) {
+                    categories[field.category] = [];
+                }
+                categories[field.category].push(field);
+            });
+
+            // Generate HTML
+            let html = '';
+            for (const [category, fields] of Object.entries(categories)) {
+                html += `
+                    <div class="form-section">
+                        <h3><span>📝</span> ${category}</h3>
+                `;
+
+                fields.forEach(field => {
+                    html += generateFieldHTML(field);
+                });
+
+                html += `</div>`;
+            }
+
+            formContainer.innerHTML = html;
+
+            // Add range input listeners
+            document.querySelectorAll('input[type="range"]').forEach(input => {
+                input.addEventListener('input', (e) => {
+                    const valueSpan = e.target.nextElementSibling;
+                    if (valueSpan && valueSpan.classList.contains('range-value')) {
+                        valueSpan.textContent = e.target.value;
+                    }
+                });
+            });
+        }
+
+        // Generate Field HTML
+        function generateFieldHTML(field) {
+            const fieldName = field.name;
+            const label = field.label || field.name;
+
+            let html = '<div class="form-group">';
+
+            if (field.type === 'checkbox') {
+                html += `
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="${fieldName}" name="${fieldName}">
+                        <label for="${fieldName}">${label}</label>
+                    </div>
+                `;
+            } else if (field.type === 'select') {
+                html += `
+                    <label for="${fieldName}">${label}</label>
+                    <select id="${fieldName}" name="${fieldName}">
+                        ${field.options.map(opt =>
+                    `<option value="${opt.v}">${opt.l}</option>`
+                ).join('')}
+                    </select>
+                `;
+            } else if (field.type === 'range') {
+                html += `
+                    <label for="${fieldName}">${label}</label>
+                    <input type="range" id="${fieldName}" name="${fieldName}" 
+                           min="${field.min}" max="${field.max}" 
+                           value="${field.default || field.min}" 
+                           step="${field.step || 1}">
+                    <span class="range-value">${field.default || field.min}</span>
+                `;
+            } else {
+                html += `
+                    <label for="${fieldName}">${label}</label>
+                    <input type="${field.type}" id="${fieldName}" name="${fieldName}" 
+                           ${field.min ? `min="${field.min}"` : ''}
+                           ${field.max ? `max="${field.max}"` : ''}
+                           ${field.step ? `step="${field.step}"` : ''}
+                           value="${field.default || ''}">
+                `;
+            }
+
+            html += '</div>';
+            return html;
+        }
+
+        // Collect Form Data
+        function collectFormData() {
+            const config = diseaseConfigs[selectedDisease];
+            const data = {};
+
+            config.fields.forEach(field => {
+                const input = document.getElementById(field.name);
+                if (!input) return;
+
+                if (field.type === 'checkbox') {
+                    data[field.name] = input.checked ? 1 : 0;
+                } else if (field.type === 'number' || field.type === 'range') {
+                    data[field.name] = parseFloat(input.value);
+                } else {
+                    data[field.name] = input.value;
+                }
+            });
+
+            // Add missing fields with default 0 for compatibility
+            const allPossibleFields = {
+                diabetes: ['HighBP', 'HighChol', 'CholCheck', 'BMI', 'Smoker', 'Stroke',
+                    'HeartDiseaseorAttack', 'PhysActivity', 'Fruits', 'Veggies',
+                    'HvyAlcoholConsump', 'AnyHealthcare', 'NoDocbcCost', 'GenHlth',
+                    'MentHlth', 'PhysHlth', 'DiffWalk', 'Sex', 'Age', 'Education', 'Income'],
+                hypertension: ['age', 'sex', 'cp', 'trestbps', 'chol', 'fbs', 'restecg',
+                    'thalach', 'exang', 'oldpeak', 'slope', 'ca', 'thal'],
+                cervical_cancer: ['Age', 'Number of sexual partners', 'First sexual intercourse',
+                    'Num of pregnancies', 'Smokes', 'Smokes (years)',
+                    'Smokes (packs/year)', 'Hormonal Contraceptives',
+                    'Hormonal Contraceptives (years)', 'IUD', 'IUD (years)',
+                    'STDs', 'STDs (number)', 'STDs:condylomatosis',
+                    'STDs:cervical condylomatosis', 'STDs:vaginal condylomatosis',
+                    'STDs:vulvo-perineal condylomatosis', 'STDs:syphilis',
+                    'STDs:pelvic inflammatory disease', 'STDs:genital herpes',
+                    'STDs:molluscum contagiosum', 'STDs:AIDS', 'STDs:HIV',
+                    'STDs:Hepatitis B', 'STDs:HPV', 'STDs: Number of diagnosis',
+                    'STDs: Time since first diagnosis', 'STDs: Time since last diagnosis',
+                    'Dx:Cancer', 'Dx:CIN', 'Dx:HPV', 'Dx', 'Hinselmann',
+                    'Schiller', 'Citology'],
+                oral_cancer: ['Country', 'Age', 'Gender', 'Tobacco Use', 'Alcohol Consumption',
+                    'HPV Infection', 'Betel Quid Use', 'Chronic Sun Exposure',
+                    'Poor Oral Hygiene', 'Diet (Fruits & Vegetables Intake)',
+                    'Family History of Cancer', 'Compromised Immune System',
+                    'Oral Lesions', 'Unexplained Bleeding', 'Difficulty Swallowing',
+                    'White or Red Patches in Mouth', 'Tumor Size (cm)',
+                    'Cancer Stage', 'Treatment Type', 'Survival Rate (5-Year, %)',
+                    'Cost of Treatment (USD)', 'Economic Burden (Lost Workdays per Year)',
+                    'Early Diagnosis']
+            };
+
+            const requiredFields = allPossibleFields[selectedDisease] || [];
+            requiredFields.forEach(field => {
+                if (!(field in data)) {
+                    data[field] = 0;
+                }
+            });
+
+            return data;
+        }
+
+        // Make Prediction
+        async function makePrediction() {
+            if (!selectedDisease) {
+                alert('Please select a disease first');
+                return;
+            }
+
+            const data = collectFormData();
+            const resultsContainer = document.getElementById('resultsContent');
+
+            // Show loading
+            resultsContainer.innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <h3>Analyzing patient data...</h3>
+                    <p>Running ML model and generating recommendations</p>
+                </div>
+            `;
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/predict/${selectedDisease}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    displayResults(result);
+                } else {
+                    displayError(result.error);
+                }
+            } catch (error) {
+                displayError('Failed to connect to API: ' + error.message);
+            }
+        }
+
+        // Display Results
+        function displayResults(result) {
+            const resultsContainer = document.getElementById('resultsContent');
+
+            let html = `
+                <!-- Prediction Header -->
+                <div class="prediction-header">
+                    <div class="prediction-title">
+                        ${diseaseConfigs[selectedDisease].icon} ${result.disease} Screening Results
+                    </div>
+                    <div class="prediction-result">
+                        <div>
+                            <div style="opacity: 0.9; font-size: 0.9em; margin-bottom: 5px;">Prediction:</div>
+                            <div class="prediction-label">${getPredictionLabel(result.prediction, selectedDisease)}</div>
+                        </div>
+                        <div class="confidence-badge confidence-high">
+                            ${(result.confidence * 100).toFixed(1)}% Confident
+                        </div>
+                    </div>
+                    
+                    ${result.recommendations?.risk_assessment ? `
+                        <div style="margin-top: 15px;">
+                            <span class="risk-level risk-${result.recommendations.risk_assessment.severity_level.toLowerCase()}">
+                                ${result.recommendations.risk_assessment.severity_level} RISK
+                            </span>
+                            <div style="margin-top: 10px; opacity: 0.9; font-size: 0.95em;">
+                                ⏰ Urgency: ${result.recommendations.risk_assessment.urgency}
+                            </div>
+                        </div>
+                    ` : `
+                        <div style="margin-top: 15px;">
+                            <span class="risk-level risk-${result.risk_level.toLowerCase()}">
+                                ${result.risk_level.toUpperCase()} RISK
+                            </span>
+                        </div>
+                    `}
+                    
+                    ${result.probabilities ? `
+                        <div class="probabilities">
+                            ${Object.entries(result.probabilities).map(([key, value]) => `
+                                <div class="prob-card">
+                                    <div class="prob-label">${getClassLabel(key, selectedDisease)}</div>
+                                    <div class="prob-value">${(value * 100).toFixed(0)}%</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+
+            // Recommendations
+            if (result.recommendations) {
+                html += '<div class="recommendations-section">';
+
+                // Immediate Actions
+                if (result.recommendations.immediate_actions && result.recommendations.immediate_actions.length > 0) {
+                    html += `
+                        <div class="rec-category">
+                            <h3><span>🚨</span> Immediate Actions</h3>
+                            <ul class="rec-list">
+                                ${result.recommendations.immediate_actions.map(action => `
+                                    <li class="rec-item">
+                                        <div class="rec-icon">▶️</div>
+                                        <div class="rec-text">${action}</div>
+                                    </li>
+                                `).join('')}
+                            </ul>
+                        </div>
+                    `;
+                }
+
+                // Diagnostic Workup
+                if (result.recommendations.diagnostic_workup && result.recommendations.diagnostic_workup.length > 0) {
+                    html += `
+                        <div class="rec-category">
+                            <h3><span>🔬</span> Diagnostic Tests Recommended</h3>
+                            <ul class="rec-list">
+                                ${result.recommendations.diagnostic_workup.slice(0, 5).map(test => `
+                                    <li class="rec-item">
+                                        <div class="rec-icon">🧪</div>
+                                        <div class="rec-text">
+                                            <strong>${test.test || test}</strong><br>
+                                            ${test.purpose ? `<small style="color: var(--gray);">${test.purpose}</small>` : ''}
+                                            ${test.target ? `<br><small style="color: var(--primary);">Target: ${test.target}</small>` : ''}
+                                        </div>
+                                    </li>
+                                `).join('')}
+                            </ul>
+                            ${result.recommendations.diagnostic_workup.length > 5 ? `
+                                <button class="expand-btn" onclick="toggleExpand(this, 'diagnostics')">
+                                    Show ${result.recommendations.diagnostic_workup.length - 5} More Tests
+                                </button>
+                                <div id="diagnostics" class="expandable-content">
+                                    <ul class="rec-list" style="margin-top: 10px;">
+                                        ${result.recommendations.diagnostic_workup.slice(5).map(test => `
+                                            <li class="rec-item">
+                                                <div class="rec-icon">🧪</div>
+                                                <div class="rec-text">
+                                                    <strong>${test.test || test}</strong><br>
+                                                    ${test.purpose ? `<small style="color: var(--gray);">${test.purpose}</small>` : ''}
+                                                </div>
+                                            </li>
+                                        `).join('')}
+                                    </ul>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                }
+
+                // Short-term Goals
+                if (result.recommendations.short_term_goals && result.recommendations.short_term_goals.length > 0) {
+                    html += `
+                        <div class="rec-category">
+                            <h3><span>🎯</span> Short-Term Goals (1-3 months)</h3>
+                            ${result.recommendations.short_term_goals.map(goal => `
+                                <div class="rec-goal">
+                                    <div class="rec-goal-title">${goal.goal || goal}</div>
+                                    ${goal.timeframe ? `<div class="rec-goal-detail">⏱️ Timeframe: ${goal.timeframe}</div>` : ''}
+                                    ${goal.success_criteria ? `<div class="rec-goal-detail">✅ Success: ${goal.success_criteria}</div>` : ''}
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                }
+
+                // Lifestyle Modifications
+                if (result.recommendations.lifestyle_modifications) {
+                    const lifestyle = result.recommendations.lifestyle_modifications;
+                    html += `
+                        <div class="rec-category">
+                            <h3><span>🥗</span> Lifestyle Modifications</h3>
+                    `;
+
+                    // Nutrition
+                    if (lifestyle.nutrition) {
+                        html += `
+                            <div style="margin-bottom: 20px;">
+                                <strong>🍎 Nutrition:</strong>
+                                ${lifestyle.nutrition.approach ? `<div style="margin: 10px 0; color: var(--gray);">${lifestyle.nutrition.approach}</div>` : ''}
+                                ${lifestyle.nutrition.specific_guidance ? `
+                                    <ul class="rec-list" style="margin-top: 10px;">
+                                        ${lifestyle.nutrition.specific_guidance.slice(0, 4).map(tip => `
+                                            <li class="rec-item">
+                                                <div class="rec-icon">✓</div>
+                                                <div class="rec-text">${tip}</div>
+                                            </li>
+                                        `).join('')}
+                                    </ul>
+                                ` : ''}
+                            </div>
+                        `;
+                    }
+
+                    // Physical Activity
+                    if (lifestyle.physical_activity) {
+                        html += `
+                            <div style="margin-bottom: 20px;">
+                                <strong>💪 Exercise:</strong>
+                                ${lifestyle.physical_activity.prescription ? `<div style="margin: 10px 0; color: var(--gray);">${lifestyle.physical_activity.prescription}</div>` : ''}
+                                ${lifestyle.physical_activity.safety_precautions ? `
+                                    <ul class="rec-list" style="margin-top: 10px;">
+                                        ${lifestyle.physical_activity.safety_precautions.slice(0, 3).map(tip => `
+                                            <li class="rec-item">
+                                                <div class="rec-icon">⚠️</div>
+                                                <div class="rec-text">${tip}</div>
+                                            </li>
+                                        `).join('')}
+                                    </ul>
+                                ` : ''}
+                            </div>
+                        `;
+                    }
+
+                    // If array format (basic recommendations)
+                    if (Array.isArray(lifestyle)) {
+                        html += `
+                            <ul class="rec-list">
+                                ${lifestyle.map(mod => `
+                                    <li class="rec-item">
+                                        <div class="rec-icon">✓</div>
+                                        <div class="rec-text">${mod}</div>
+                                    </li>
+                                `).join('')}
+                            </ul>
+                        `;
+                    }
+
+                    html += `</div>`;
+                }
+
+                // Warning Signs
+                if (result.recommendations.warning_signs && result.recommendations.warning_signs.length > 0) {
+                    html += `
+                        <div class="alert alert-warning">
+                            <div class="alert-icon">⚠️</div>
+                            <div>
+                                <strong>Warning Signs to Watch:</strong>
+                                <ul style="margin-top: 10px; margin-left: 20px;">
+                                    ${result.recommendations.warning_signs.slice(0, 3).map(sign => `
+                                        <li>${sign.sign || sign}</li>
+                                    `).join('')}
+                                </ul>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // Emergency Indicators
+                if (result.recommendations.emergency_indicators && result.recommendations.emergency_indicators.length > 0) {
+                    html += `
+                        <div class="alert alert-danger">
+                            <div class="alert-icon">🚨</div>
+                            <div>
+                                <strong>Call 911 If:</strong>
+                                <ul style="margin-top: 10px; margin-left: 20px;">
+                                    ${result.recommendations.emergency_indicators.slice(0, 3).map(indicator => `
+                                        <li>${indicator.emergency || indicator.signs || indicator}</li>
+                                    `).join('')}
+                                </ul>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // Specialist Referrals
+                if (result.recommendations.specialist_referrals && result.recommendations.specialist_referrals.length > 0) {
+                    html += `
+                        <div class="rec-category">
+                            <h3><span>👨‍⚕️</span> Specialist Referrals</h3>
+                            <ul class="rec-list">
+                                ${result.recommendations.specialist_referrals.map(ref => `
+                                    <li class="rec-item">
+                                        <div class="rec-icon">🏥</div>
+                                        <div class="rec-text">
+                                            <strong>${ref.specialist || ref}</strong><br>
+                                            ${ref.when ? `<small style="color: var(--gray);">When: ${ref.when}</small><br>` : ''}
+                                            ${ref.purpose ? `<small style="color: var(--info);">${ref.purpose}</small>` : ''}
+                                        </div>
+                                    </li>
+                                `).join('')}
+                            </ul>
+                        </div>
+                    `;
+                }
+
+                // Follow-up Plan
+                if (result.recommendations.follow_up_plan && Object.keys(result.recommendations.follow_up_plan).length > 0) {
+                    html += `
+                        <div class="rec-category">
+                            <h3><span>📅</span> Follow-up Schedule</h3>
+                            <ul class="rec-list">
+                                ${Object.entries(result.recommendations.follow_up_plan).map(([time, details]) => `
+                                    <li class="rec-item">
+                                        <div class="rec-icon">📆</div>
+                                        <div class="rec-text">
+                                            <strong>${time.replace(/_/g, ' ')}</strong><br>
+                                            <small style="color: var(--gray);">${details.purpose || details}</small>
+                                        </div>
+                                    </li>
+                                `).join('')}
+                            </ul>
+                        </div>
+                    `;
+                }
+
+                // Personalized Insights
+                if (result.recommendations.personalized_insights && result.recommendations.personalized_insights.length > 0) {
+                    html += `
+                        <div class="alert alert-info">
+                            <div class="alert-icon">💡</div>
+                            <div>
+                                <strong>Personalized Insights:</strong>
+                                <ul style="margin-top: 10px; margin-left: 20px;">
+                                    ${result.recommendations.personalized_insights.map(insight => `
+                                        <li>${insight}</li>
+                                    `).join('')}
+                                </ul>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                html += '</div>'; // Close recommendations-section
+            }
+
+            // Footer note
+            html += `
+                <div style="margin-top: 30px; padding: 20px; background: var(--light); border-radius: 10px; text-align: center; color: var(--gray); font-size: 0.9em;">
+                    <strong>⚠️ Important Disclaimer:</strong><br>
+                    This is an AI-based screening tool for educational purposes. It is NOT a substitute for professional medical diagnosis. 
+                    Always consult with qualified healthcare providers for medical advice and treatment.
+                </div>
+            `;
+
+            resultsContainer.innerHTML = html;
+
+            // Smooth scroll to results
+            resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // Display Error
+        function displayError(errorMsg) {
+            const resultsContainer = document.getElementById('resultsContent');
+            resultsContainer.innerHTML = `
+                <div class="alert alert-danger">
+                    <div class="alert-icon">❌</div>
+                    <div>
+                        <strong>Error:</strong><br>
+                        ${errorMsg}
+                    </div>
+                </div>
+            `;
+        }
+
+        // Helper Functions
+        function getPredictionLabel(prediction, disease) {
+            const labels = {
+                diabetes: {
+                    '0': 'No Diabetes',
+                    '1': 'Prediabetes',
+                    '2': 'Diabetes'
+                },
+                hypertension: {
+                    '0': 'No Hypertension',
+                    '1': 'Hypertension Detected'
+                },
+                cervical_cancer: {
+                    '0': 'Negative',
+                    '1': 'Positive - Further Testing Required'
+                },
+                oral_cancer: {
+                    'No': 'Negative',
+                    'Yes': 'Positive - Further Testing Required'
+                }
+            };
+
+            return labels[disease]?.[String(prediction)] || prediction;
+        }
+
+        function getClassLabel(classKey, disease) {
+            const labels = {
+                diabetes: {
+                    '0': 'No Diabetes',
+                    '1': 'Prediabetes',
+                    '2': 'Diabetes'
+                },
+                hypertension: {
+                    '0': 'Negative',
+                    '1': 'Positive'
+                },
+                cervical_cancer: {
+                    '0': 'Negative',
+                    '1': 'Positive'
+                },
+                oral_cancer: {
+                    'No': 'Negative',
+                    'Yes': 'Positive'
+                }
+            };
+
+            return labels[disease]?.[String(classKey)] || `Class ${classKey}`;
+        }
+
+        function toggleExpand(button, contentId) {
+            const content = document.getElementById(contentId);
+            if (content.classList.contains('expanded')) {
+                content.classList.remove('expanded');
+                button.textContent = button.textContent.replace('Hide', 'Show');
+            } else {
+                content.classList.add('expanded');
+                button.textContent = button.textContent.replace('Show', 'Hide');
+            }
+        }
+
+        // Reset Form
+        function resetForm() {
+            selectedDisease = null;
+            document.getElementById('patientForm').innerHTML = '';
+            document.getElementById('resultsContent').innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">📊</div>
+                    <h3>No Prediction Yet</h3>
+                    <p>Select a disease and fill in the patient information to get started.</p>
+                </div>
+            `;
+            document.querySelectorAll('.disease-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            document.getElementById('predictBtn').disabled = true;
+        }
+
+        // Refresh API status every 30 seconds
+        setInterval(checkAPIStatus, 30000);
+    </script>
+</body>
+
+</html>
