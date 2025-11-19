@@ -1,8 +1,3 @@
-"""
-Integrated Disease Prediction API with Ultra-Advanced Recommendations
-Complete backend with ML predictions + comprehensive clinical recommendations
-"""
-
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import joblib
@@ -12,11 +7,9 @@ import os
 from datetime import datetime
 import traceback
 
-# Import the advanced recommendation engine
 import sys
 sys.path.append('.')  # Ensure current directory is in path
 
-# We'll import from the advanced_recommendation_system.py file you saved earlier
 try:
     from recommendationsys import UltraAdvancedRecommendationEngine
     ADVANCED_RECS_AVAILABLE = True
@@ -26,11 +19,10 @@ except ImportError:
     print("⚠️ Advanced recommendation engine not found - using basic recommendations")
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS for frontend requests
+CORS(app)
 
-# ============================================================================
+
 # MODEL LOADING
-# ============================================================================
 
 class ModelLoader:
     """Load and manage ML models"""
@@ -433,7 +425,6 @@ if __name__ == '__main__':
     
     print("\n" + "="*70)
     print("Disease Prediction API Server v2.0")
-    print("With Ultra-Advanced Clinical Recommendations")
     print("="*70)
     print(f"Models loaded: {len(model_loader.models)}")
     print(f"Available diseases: {list(model_loader.models.keys())}")
