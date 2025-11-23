@@ -1088,12 +1088,13 @@
         // Check if prediction is positive
         function checkIfPositive(pred) {
             const prediction = String(pred.prediction).toLowerCase();
+            const diseaseKey = normalizeDiseaseName(pred.disease);
 
-            if (pred.disease === 'diabetes') {
+            if (diseaseKey === 'diabetes') {
                 return prediction === '1' || prediction === '2'; // Prediabetes or Diabetes
-            } else if (pred.disease === 'hypertension') {
+            } else if (diseaseKey === 'hypertension') {
                 return prediction === '1';
-            } else if (pred.disease === 'oral_cancer') {
+            } else if (diseaseKey === 'oral_cancer') {
                 return prediction === 'yes';
             }
 
@@ -1108,7 +1109,8 @@
                 oral_cancer: { name: 'Oral Cancer', icon: '👄' }
             };
 
-            const info = diseaseInfo[pred.disease];
+            const diseaseKey = normalizeDiseaseName(pred.disease);
+            const info = diseaseInfo[diseaseKey] || { name: pred.disease || 'Unknown', icon: '❓' };
             const isPositive = checkIfPositive(pred);
             const confidence = pred.confidence || 0;
 
@@ -1153,7 +1155,7 @@
             if (pred.probabilities) {
                 html += '<div class="probability-details">';
                 Object.entries(pred.probabilities).forEach(([key, value]) => {
-                    const label = getPredictionLabel(key, pred.disease);
+                    const label = getPredictionLabel(key, diseaseKey);
                     html += `
                         <div class="prob-item">
                             <div class="prob-label">${label}</div>
@@ -1270,6 +1272,8 @@
 
         // Get Prediction Label
         function getPredictionLabel(key, disease) {
+            // Normalize disease identifier (server may return 'Diabetes' etc.)
+            disease = String(disease || '').toLowerCase().replace(/\s+/g, '_');
             const labels = {
                 diabetes: {
                     '0': 'No Diabetes',
@@ -1289,11 +1293,18 @@
             return labels[disease]?.[String(key).toLowerCase()] || `Class ${key}`;
         }
 
+        // Normalize disease name returned from API into internal key
+        function normalizeDiseaseName(disease) {
+            if (!disease) return '';
+            return String(disease).toLowerCase().trim().replace(/\s+/g, '_');
+        }
+
         // Get Interpretation
         function getInterpretation(disease, prediction, confidence) {
             const pred = String(prediction).toLowerCase();
+            const diseaseKey = normalizeDiseaseName(disease);
 
-            if (disease === 'diabetes') {
+            if (diseaseKey === 'diabetes') {
                 if (pred === '2') {
                     return `Based on your risk factors, the model indicates high likelihood of diabetes (Type 2). This requires medical evaluation and management. Schedule an appointment with your doctor soon.`;
                 } else if (pred === '1') {
@@ -1301,13 +1312,13 @@
                 } else {
                     return `Your current risk factors suggest low likelihood of diabetes. Continue maintaining healthy lifestyle habits to keep your risk low.`;
                 }
-            } else if (disease === 'hypertension') {
+            } else if (diseaseKey === 'hypertension') {
                 if (pred === '1') {
                     return `Your risk profile indicates potential hypertension (high blood pressure). This should be confirmed with proper blood pressure measurements. Consult your doctor for evaluation and management.`;
                 } else {
                     return `Your cardiovascular risk factors appear within normal range. Continue heart-healthy habits to maintain good blood pressure.`;
                 }
-            } else if (disease === 'oral_cancer') {
+            } else if (diseaseKey === 'oral_cancer') {
                 if (pred === 'yes') {
                     return `WARNING: Your risk factors and symptoms suggest increased oral cancer risk. This requires immediate medical attention. Schedule an examination with an oral surgeon or oncologist as soon as possible.`;
                 } else {
