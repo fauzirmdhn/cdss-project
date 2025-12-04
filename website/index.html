@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MediPredict - Comprehensive Health Assessment</title>
+    <title>DocKodave - Diagnosis Penyakit</title>
     <style>
         * {
             margin: 0;
@@ -574,162 +574,193 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🏥 MediPredict</h1>
-            <p class="subtitle">Comprehensive Health Assessment & Disease Screening</p>
+            <h1>🏥 DocKodave</h1>
+            <p class="subtitle">Penilaian Kesehatan Komprehensif & Skrining Penyakit</p>
             <div class="api-status">
                 <div class="status-dot online" id="statusDot"></div>
-                <span id="statusText">Checking API...</span>
+                <span id="statusText">Memeriksa API...</span>
             </div>
         </div>
 
         <div class="main-content">
             <!-- Left Panel - Patient Information Form -->
             <div class="input-panel">
-                <h2 class="panel-title">📋 Patient Health Assessment</h2>
+                <h2 class="panel-title">📋 Penilaian Kesehatan Pasien</h2>
 
                 <div class="info-box">
-                    <h3>🔍 What This Does</h3>
-                    <p>Fill out this comprehensive health questionnaire. Our AI will analyze your information and screen
-                        for multiple conditions including Diabetes, Hypertension, and Cancer risk factors.</p>
+                    <h3>🔍 Apa yang Dilakukan Ini</h3>
+                    <p>Isi kuesioner kesehatan komprehensif ini. AI kami akan menganalisis informasi Anda dan melakukan
+                        skrining
+                        untuk berbagai kondisi termasuk Diabetes, Hipertensi, dan faktor risiko Kanker.</p>
                 </div>
 
                 <form id="healthForm">
                     <!-- Demographics -->
                     <div class="form-section">
-                        <h3><span>👤</span> Demographics</h3>
+                        <h3><span>👤</span> Demografi</h3>
                         <div class="form-group">
-                            <label for="Age">Age *</label>
+                            <label for="Age">Usia *</label>
                             <input type="number" id="Age" name="Age" min="1" max="120" value="50" required>
                         </div>
                         <div class="form-group">
-                            <label for="Sex">Sex *</label>
+                            <label for="Sex">Jenis Kelamin *</label>
                             <select id="Sex" name="Sex" required>
-                                <option value="0">Female</option>
-                                <option value="1">Male</option>
+                                <option value="0">Perempuan</option>
+                                <option value="1">Laki-laki</option>
                             </select>
                         </div>
+                    </div>
+
+                    <!-- Physical Measurements -->
+                    <div class="form-section">
+                        <h3><span>📏</span> Pengukuran Fisik</h3>
                         <div class="form-group">
-                            <label for="BMI">Body Mass Index (BMI) *</label>
-                            <input type="number" id="BMI" name="BMI" min="10" max="60" step="0.1" value="25" required>
-                            <small style="color: var(--gray);">Calculate: weight(kg) / height(m)²</small>
+                            <label for="Height">Tinggi Badan (cm) *</label>
+                            <input type="number" id="Height" name="Height" min="100" max="250" step="0.1" value="170"
+                                required>
+                            <small style="color: var(--gray);">Masukkan tinggi badan dalam sentimeter (mis., 170 cm =
+                                5'7")</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="Weight">Berat Badan (kg) *</label>
+                            <input type="number" id="Weight" name="Weight" min="30" max="300" step="0.1" value="70"
+                                required>
+                            <small style="color: var(--gray);">Masukkan berat badan dalam kilogram (mis., 70 kg = 154
+                                lbs)</small>
+                        </div>
+                        <div class="form-group">
+                            <label>Indeks Massa Tubuh (IMT)</label>
+                            <div
+                                style="background: var(--light); padding: 15px; border-radius: 8px; border: 2px solid #e2e8f0;">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <span style="font-size: 0.9em; color: var(--gray);">IMT Terhitung:</span>
+                                    <span id="calculatedBMI"
+                                        style="font-size: 1.5em; font-weight: bold; color: var(--primary);">24.2</span>
+                                </div>
+                                <div id="bmiCategory"
+                                    style="margin-top: 8px; font-size: 0.85em; padding: 5px 10px; border-radius: 5px; text-align: center; background: var(--success); color: white;">
+                                    Berat Badan Normal
+                                </div>
+                            </div>
+                            <input type="hidden" id="BMI" name="BMI" value="24.2">
                         </div>
                     </div>
 
                     <!-- Medical History -->
                     <div class="form-section">
-                        <h3><span>🏥</span> Medical History</h3>
+                        <h3><span>🏥</span> Riwayat Medis</h3>
                         <div class="form-group">
                             <div class="checkbox-group">
                                 <input type="checkbox" id="HighBP" name="HighBP">
-                                <label for="HighBP">High Blood Pressure</label>
+                                <label for="HighBP">Tekanan Darah Tinggi</label>
                             </div>
                         </div>
                         <div class="form-group">
                             <div class="checkbox-group">
                                 <input type="checkbox" id="HighChol" name="HighChol">
-                                <label for="HighChol">High Cholesterol</label>
+                                <label for="HighChol">Kolesterol Tinggi</label>
                             </div>
                         </div>
                         <div class="form-group">
                             <div class="checkbox-group">
                                 <input type="checkbox" id="Stroke" name="Stroke">
-                                <label for="Stroke">History of Stroke</label>
+                                <label for="Stroke">Riwayat Stroke</label>
                             </div>
                         </div>
                         <div class="form-group">
                             <div class="checkbox-group">
                                 <input type="checkbox" id="HeartDiseaseorAttack" name="HeartDiseaseorAttack">
-                                <label for="HeartDiseaseorAttack">Heart Disease or Heart Attack</label>
+                                <label for="HeartDiseaseorAttack">Penyakit Jantung atau Serangan Jantung</label>
                             </div>
                         </div>
                         <div class="form-group">
                             <div class="checkbox-group">
                                 <input type="checkbox" id="FamilyHistoryCancer" name="FamilyHistoryCancer">
-                                <label for="FamilyHistoryCancer">Family History of Cancer</label>
+                                <label for="FamilyHistoryCancer">Riwayat Kanker Keluarga</label>
                             </div>
                         </div>
                     </div>
 
                     <!-- Lifestyle Factors -->
                     <div class="form-section">
-                        <h3><span>🏃</span> Lifestyle</h3>
+                        <h3><span>🏃</span> Gaya Hidup</h3>
                         <div class="form-group">
                             <div class="checkbox-group">
                                 <input type="checkbox" id="Smoker" name="Smoker">
-                                <label for="Smoker">Tobacco/Smoking Use</label>
+                                <label for="Smoker">Penggunaan Tembakau/Merokok</label>
                             </div>
                         </div>
                         <div class="form-group">
                             <div class="checkbox-group">
                                 <input type="checkbox" id="AlcoholConsumption" name="AlcoholConsumption">
-                                <label for="AlcoholConsumption">Regular Alcohol Consumption</label>
+                                <label for="AlcoholConsumption">Konsumsi Alkohol Reguler</label>
                             </div>
                         </div>
                         <div class="form-group">
                             <div class="checkbox-group">
                                 <input type="checkbox" id="PhysActivity" name="PhysActivity">
-                                <label for="PhysActivity">Regular Physical Activity (past 30 days)</label>
+                                <label for="PhysActivity">Aktivitas Fisik Reguler (30 hari terakhir)</label>
                             </div>
                         </div>
                         <div class="form-group">
                             <div class="checkbox-group">
                                 <input type="checkbox" id="Fruits" name="Fruits">
-                                <label for="Fruits">Daily Fruit Consumption</label>
+                                <label for="Fruits">Konsumsi Buah Harian</label>
                             </div>
                         </div>
                         <div class="form-group">
                             <div class="checkbox-group">
                                 <input type="checkbox" id="Veggies" name="Veggies">
-                                <label for="Veggies">Daily Vegetable Consumption</label>
+                                <label for="Veggies">Konsumsi Sayuran Harian</label>
                             </div>
                         </div>
                     </div>
 
                     <!-- Health Status -->
                     <div class="form-section">
-                        <h3><span>💊</span> Current Health Status</h3>
+                        <h3><span>💊</span> Status Kesehatan Saat Ini</h3>
                         <div class="form-group">
-                            <label for="GenHlth">General Health (1=Excellent, 5=Poor)</label>
+                            <label for="GenHlth">Kesehatan Umum (1=Sangat Baik, 5=Buruk)</label>
                             <input type="range" id="GenHlth" name="GenHlth" min="1" max="5" value="3">
                             <span class="range-value">3</span>
                         </div>
                         <div class="form-group">
-                            <label for="MentHlth">Mental Health Issues (days in past 30)</label>
+                            <label for="MentHlth">Masalah Kesehatan Mental (hari dalam 30 terakhir)</label>
                             <input type="range" id="MentHlth" name="MentHlth" min="0" max="30" value="0">
                             <span class="range-value">0</span>
                         </div>
                         <div class="form-group">
-                            <label for="PhysHlth">Physical Health Issues (days in past 30)</label>
+                            <label for="PhysHlth">Masalah Kesehatan Fisik (hari dalam 30 terakhir)</label>
                             <input type="range" id="PhysHlth" name="PhysHlth" min="0" max="30" value="0">
                             <span class="range-value">0</span>
                         </div>
                         <div class="form-group">
                             <div class="checkbox-group">
                                 <input type="checkbox" id="DiffWalk" name="DiffWalk">
-                                <label for="DiffWalk">Difficulty Walking or Climbing Stairs</label>
+                                <label for="DiffWalk">Kesulitan Berjalan atau Naik Tangga</label>
                             </div>
                         </div>
                     </div>
 
                     <!-- Symptoms (for cancer screening) -->
                     <div class="form-section">
-                        <h3><span>⚕️</span> Symptoms (if any)</h3>
+                        <h3><span>⚕️</span> Gejala (jika ada)</h3>
                         <div class="form-group">
                             <div class="checkbox-group">
                                 <input type="checkbox" id="OralLesions" name="OralLesions">
-                                <label for="OralLesions">Mouth sores or white/red patches</label>
+                                <label for="OralLesions">Luka mulut atau bercak putih/merah</label>
                             </div>
                         </div>
                         <div class="form-group">
                             <div class="checkbox-group">
                                 <input type="checkbox" id="UnexplainedBleeding" name="UnexplainedBleeding">
-                                <label for="UnexplainedBleeding">Unexplained bleeding</label>
+                                <label for="UnexplainedBleeding">Pendarahan yang tidak dapat dijelaskan</label>
                             </div>
                         </div>
                         <div class="form-group">
                             <div class="checkbox-group">
                                 <input type="checkbox" id="DifficultySwallowing" name="DifficultySwallowing">
-                                <label for="DifficultySwallowing">Difficulty swallowing</label>
+                                <label for="DifficultySwallowing">Kesulitan menelan</label>
                             </div>
                         </div>
                     </div>
@@ -737,11 +768,11 @@
                     <!-- Action Buttons -->
                     <button type="submit" class="btn btn-primary">
                         <span>🔬</span>
-                        <span>Analyze My Health</span>
+                        <span>Analisis Kesehatan Saya</span>
                     </button>
                     <button type="button" class="btn btn-secondary" id="resetBtn">
                         <span>🔄</span>
-                        <span>Reset Form</span>
+                        <span>Setel Ulang Formulir</span>
                     </button>
                 </form>
             </div>
@@ -751,9 +782,10 @@
                 <div id="resultsContent">
                     <div class="empty-state">
                         <div class="empty-state-icon">🩺</div>
-                        <h3>Ready for Assessment</h3>
-                        <p>Fill out the health questionnaire on the left and click "Analyze My Health" to receive your
-                            comprehensive health screening results.</p>
+                        <h3>Siap untuk Penilaian</h3>
+                        <p>Isi kuesioner kesehatan di sebelah kiri dan klik "Analisis Kesehatan Saya" untuk menerima
+                            hasil
+                            skrining kesehatan komprehensif Anda.</p>
                     </div>
                 </div>
             </div>
@@ -761,7 +793,7 @@
     </div>
 
     <script>
-        const API_BASE_URL = 'http://192.168.18.8:5000';
+        const API_BASE_URL = 'http://localhost:5000';
 
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
@@ -776,11 +808,11 @@
                 const data = await response.json();
 
                 document.getElementById('statusDot').className = 'status-dot online';
-                document.getElementById('statusText').textContent = `API Online - ${data.models_loaded} models ready`;
+                document.getElementById('statusText').textContent = `API Online - ${data.models_loaded} model siap`;
             } catch (error) {
                 document.getElementById('statusDot').className = 'status-dot offline';
                 document.getElementById('statusText').textContent = 'API Offline';
-                console.error('API Error:', error);
+                console.error('Kesalahan API:', error);
             }
         }
 
@@ -801,6 +833,68 @@
                     }
                 });
             });
+
+            // BMI calculation listeners
+            const heightInput = document.getElementById('Height');
+            const weightInput = document.getElementById('Weight');
+
+            if (heightInput && weightInput) {
+                heightInput.addEventListener('input', calculateBMI);
+                weightInput.addEventListener('input', calculateBMI);
+
+                // Calculate initial BMI
+                calculateBMI();
+            }
+        }
+
+        // Calculate BMI
+        function calculateBMI() {
+            const height = parseFloat(document.getElementById('Height').value);
+            const weight = parseFloat(document.getElementById('Weight').value);
+
+            if (height > 0 && weight > 0) {
+                // BMI = weight (kg) / height (m)²
+                const heightInMeters = height / 100;
+                const bmi = weight / (heightInMeters * heightInMeters);
+
+                // Update display
+                document.getElementById('calculatedBMI').textContent = bmi.toFixed(1);
+                document.getElementById('BMI').value = bmi.toFixed(1);
+
+                // Update category
+                updateBMICategory(bmi);
+            }
+        }
+
+        // Update BMI Category Display
+        function updateBMICategory(bmi) {
+            const categoryDiv = document.getElementById('bmiCategory');
+
+            let category = '';
+            let color = '';
+
+            if (bmi < 18.5) {
+                category = 'Kurus';
+                color = 'var(--info)';
+            } else if (bmi < 25) {
+                category = 'Berat Badan Normal';
+                color = 'var(--success)';
+            } else if (bmi < 30) {
+                category = 'Kelebihan Berat Badan';
+                color = 'var(--warning)';
+            } else if (bmi < 35) {
+                category = 'Obesitas (Kelas I)';
+                color = 'var(--danger)';
+            } else if (bmi < 40) {
+                category = 'Obesitas (Kelas II)';
+                color = 'var(--danger)';
+            } else {
+                category = 'Obesitas (Kelas III)';
+                color = 'var(--danger)';
+            }
+
+            categoryDiv.textContent = category;
+            categoryDiv.style.background = color;
         }
 
         // Handle Form Submission
@@ -814,8 +908,8 @@
             resultsContainer.innerHTML = `
                 <div class="loading">
                     <div class="spinner"></div>
-                    <h3>Analyzing your health data...</h3>
-                    <p>Screening for multiple conditions using AI models</p>
+                    <h3>Menganalisis data kesehatan Anda...</h3>
+                    <p>Skrining berbagai kondisi menggunakan model AI</p>
                 </div>
             `;
 
@@ -829,7 +923,7 @@
 
                 displayComprehensiveResults(predictions, formData);
             } catch (error) {
-                displayError('Failed to complete health assessment: ' + error.message);
+                displayError('Gagal menyelesaikan penilaian kesehatan: ' + error.message);
             }
         }
 
@@ -961,110 +1055,123 @@
         function displayComprehensiveResults(predictions, formData) {
             const resultsContainer = document.getElementById('resultsContent');
 
-            // Count positive results
-            let positiveCount = 0;
-            let highRiskCount = 0;
+            // Separate positive/at-risk from low-risk
+            let highPriorityResults = [];
+            let lowPriorityResults = [];
 
             predictions.forEach(pred => {
                 if (pred.success) {
                     const isPositive = checkIfPositive(pred);
-                    if (isPositive) positiveCount++;
-                    if (pred.confidence > 0.7 && isPositive) highRiskCount++;
+                    const confidence = pred.confidence || 0;
+
+                    if (isPositive && confidence > 0.4) {
+                        highPriorityResults.push(pred);
+                    } else {
+                        lowPriorityResults.push(pred);
+                    }
                 }
             });
 
-            // Overall health status
-            let healthStatus = 'healthy';
-            let statusMessage = 'No significant health concerns detected';
-            let statusClass = '';
-
-            if (highRiskCount > 0) {
-                healthStatus = 'high-risk';
-                statusMessage = `${highRiskCount} condition${highRiskCount > 1 ? 's' : ''} detected with high confidence`;
-                statusClass = 'high-risk';
-            } else if (positiveCount > 0) {
-                healthStatus = 'at-risk';
-                statusMessage = `${positiveCount} potential health concern${positiveCount > 1 ? 's' : ''} detected`;
-                statusClass = 'at-risk';
-            }
+            // Sort high priority by confidence (highest first)
+            highPriorityResults.sort((a, b) => (b.confidence || 0) - (a.confidence || 0));
 
             let html = '';
 
             // Health Summary
-            if (healthStatus === 'healthy') {
+            if (highPriorityResults.length === 0) {
                 html += `
                     <div class="health-summary">
-                        <h2>✅ Good Health Status</h2>
-                        <p>Based on your assessment, no major health concerns were detected. Continue maintaining your healthy lifestyle!</p>
+                        <h2>✅ Status Kesehatan Sangat Baik</h2>
+                        <p>Berdasarkan penilaian komprehensif Anda, tidak ada masalah kesehatan yang signifikan terdeteksi di semua skrining.</p>
+                        <p style="margin-top: 10px; font-size: 0.95em;">Terus pertahankan gaya hidup sehat Anda dan jadwalkan pemeriksaan rutin.</p>
                     </div>
                     
                     <div class="alert alert-success">
                         <div class="alert-icon">💚</div>
                         <div>
-                            <strong>Great News!</strong><br>
-                            Your screening results show low risk for diabetes, hypertension, and cancer. Keep up the healthy habits!
+                            <strong>Berita Bagus!</strong><br>
+                            Hasil skrining Anda menunjukkan risiko rendah untuk diabetes, hipertensi, dan kanker. Semua indikator kesehatan vital berada dalam kisaran sehat.
                         </div>
                     </div>
-                `;
-            } else {
-                html += `
-                    <div class="health-summary ${statusClass}">
-                        <h2>⚠️ Health Assessment Results</h2>
-                        <p>${statusMessage}</p>
-                        <p style="margin-top: 10px; font-size: 0.95em;">Please review the detailed results below and follow the recommended actions.</p>
-                    </div>
-                `;
-            }
-
-            // Disease Results
-            html += '<div class="disease-results">';
-            html += '<h3 style="color: var(--dark); margin-bottom: 20px; font-size: 1.4em;">🔬 Screening Results by Condition</h3>';
-
-            predictions.forEach(pred => {
-                if (pred.success) {
-                    html += generateDiseaseCard(pred);
-                }
-            });
-
-            html += '</div>';
-
-            // General Health Recommendations (if healthy)
-            if (healthStatus === 'healthy') {
-                html += `
-                    <div class="rec-category" style="background: var(--light); padding: 20px; border-radius: 12px;">
+                    
+                    <div class="rec-category" style="background: var(--light); padding: 20px; border-radius: 12px; margin-top: 20px;">
                         <h4 style="font-size: 1.2em; margin-bottom: 15px;">
-                            <span>💡</span> General Health Recommendations
+                            <span>💡</span> Pertahankan Kesehatan Anda
                         </h4>
                         <ul class="rec-list">
                             <li class="rec-item">
                                 <div class="rec-icon">✓</div>
-                                <div class="rec-text">Continue annual health check-ups with your primary care physician</div>
+                                <div class="rec-text">Schedule annual physical examinations with your primary care physician</div>
                             </li>
                             <li class="rec-item">
                                 <div class="rec-icon">✓</div>
-                                <div class="rec-text">Maintain a balanced diet rich in fruits, vegetables, and whole grains</div>
+                                <div class="rec-text">Continue eating a balanced diet with plenty of fruits, vegetables, and whole grains</div>
                             </li>
                             <li class="rec-item">
                                 <div class="rec-icon">✓</div>
-                                <div class="rec-text">Exercise regularly - at least 150 minutes of moderate activity per week</div>
+                                <div class="rec-text">Maintain regular exercise routine - at least 150 minutes of moderate activity per week</div>
                             </li>
                             <li class="rec-item">
                                 <div class="rec-icon">✓</div>
-                                <div class="rec-text">Get 7-9 hours of quality sleep each night</div>
+                                <div class="rec-text">Prioritize 7-9 hours of quality sleep each night</div>
                             </li>
                             <li class="rec-item">
                                 <div class="rec-icon">✓</div>
-                                <div class="rec-text">Manage stress through mindfulness, meditation, or hobbies</div>
+                                <div class="rec-text">Practice stress management through meditation, yoga, or hobbies</div>
                             </li>
                             <li class="rec-item">
                                 <div class="rec-icon">✓</div>
-                                <div class="rec-text">Stay hydrated - drink at least 8 glasses of water daily</div>
+                                <div class="rec-text">Stay hydrated with at least 8 glasses of water daily</div>
                             </li>
                             <li class="rec-item">
                                 <div class="rec-icon">✓</div>
-                                <div class="rec-text">Avoid smoking and limit alcohol consumption</div>
+                                <div class="rec-text">Avoid tobacco products and limit alcohol consumption</div>
+                            </li>
+                            <li class="rec-item">
+                                <div class="rec-icon">✓</div>
+                                <div class="rec-text">Keep up with age-appropriate cancer screenings (mammogram, colonoscopy, etc.)</div>
                             </li>
                         </ul>
+                    </div>
+                `;
+            } else {
+                // Show priority condition(s)
+                const primaryCondition = highPriorityResults[0];
+                const conditionCount = highPriorityResults.length;
+
+                html += `
+                    <div class="health-summary high-risk">
+                        <h2>⚠️ Masalah Kesehatan Terdeteksi</h2>
+                        <p>${conditionCount === 1 ? 'Satu kondisi memerlukan' : `${conditionCount} kondisi memerlukan`} perhatian Anda berdasarkan hasil skrining.</p>
+                        <p style="margin-top: 10px; font-size: 0.95em;">Harap tinjau temuan di bawah ini dan ikuti tindakan yang direkomendasikan segera.</p>
+                    </div>
+                `;
+
+                // Display each high-priority result prominently
+                highPriorityResults.forEach((pred, index) => {
+                    html += generateDetailedDiseaseCard(pred, index === 0); // First one is most prominent
+                });
+            }
+
+            // Show low-risk results minimized at bottom
+            if (lowPriorityResults.length > 0) {
+                html += `
+                    <div style="margin-top: 40px; padding-top: 30px; border-top: 2px solid #e2e8f0;">
+                        <h4 style="color: var(--gray); font-size: 1.1em; margin-bottom: 15px;">
+                            ✓ Skrining Lainnya - Risiko Rendah
+                        </h4>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+                `;
+
+                lowPriorityResults.forEach(pred => {
+                    html += generateMinimalDiseaseCard(pred);
+                });
+
+                html += `
+                        </div>
+                        <p style="color: var(--gray); font-size: 0.9em; margin-top: 15px; text-align: center;">
+                            Kondisi ini menunjukkan probabilitas rendah berdasarkan profil kesehatan saat ini Anda. Terus pertahankan kebiasaan sehat untuk mempertahankan risiko rendah.
+                        </p>
                     </div>
                 `;
             }
@@ -1074,15 +1181,381 @@
                 <div class="alert alert-warning" style="margin-top: 30px;">
                     <div class="alert-icon">⚠️</div>
                     <div>
-                        <strong>Important Disclaimer:</strong><br>
-                        This is an AI-based screening tool for educational purposes only. It is NOT a medical diagnosis and should NOT replace professional medical advice. 
-                        Always consult with qualified healthcare providers for proper diagnosis and treatment.
+                        <strong>Penolakan Tanggung Jawab Medis Penting:</strong><br>
+                        Ini adalah alat skrining berbasis AI untuk tujuan pendidikan saja. Ini BUKAN diagnosis medis dan TIDAK boleh menggantikan evaluasi medis profesional. 
+                        Selalu konsultasikan dengan penyedia layanan kesehatan yang berkualitas untuk diagnosis, pengobatan, dan saran medis yang tepat. Jika Anda memiliki gejala atau kekhawatiran, harap segera cari perhatian medis.
                     </div>
                 </div>
             `;
 
             resultsContainer.innerHTML = html;
             resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // Generate Detailed Disease Card (for detected/at-risk conditions)
+        function generateDetailedDiseaseCard(pred, isPrimary) {
+            const diseaseInfo = {
+                diabetes: { name: 'Diabetes', icon: '🩸', color: '#f56565' },
+                hypertension: { name: 'Hypertension (High Blood Pressure)', icon: '❤️', color: '#ed8936' },
+                oral_cancer: { name: 'Oral Cancer Risk', icon: '👄', color: '#f56565' }
+            };
+
+            const diseaseKey = normalizeDiseaseName(pred.disease);
+            const info = diseaseInfo[diseaseKey] || { name: pred.disease || 'Unknown', icon: '❓', color: '#999' };
+            const confidence = pred.confidence || 0;
+
+            let severityLevel = 'High Risk';
+            let severityColor = '#f56565';
+
+            if (confidence < 0.7) {
+                severityLevel = 'Moderate Risk';
+                severityColor = '#ed8936';
+            }
+
+            let html = `
+                <div style="background: white; border-radius: 15px; padding: 30px; margin-bottom: 25px; 
+                            box-shadow: 0 4px 20px rgba(0,0,0,0.15); border-left: 6px solid ${info.color};">
+                    
+                    <!-- Header -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <span style="font-size: 3em;">${info.icon}</span>
+                            <div>
+                                <h2 style="color: var(--dark); font-size: 1.8em; margin-bottom: 5px;">${info.name}</h2>
+                                <p style="color: var(--gray); font-size: 1em;">Screening Result</p>
+                            </div>
+                        </div>
+                        <div style="background: ${severityColor}; color: white; padding: 12px 24px; 
+                                    border-radius: 25px; font-weight: bold; font-size: 1.1em;">
+                            ${severityLevel}
+                        </div>
+                    </div>
+                    
+                    <!-- Confidence Bar -->
+                    <div style="margin-bottom: 25px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <span style="font-weight: 600; color: var(--dark);">Prediction Confidence</span>
+                            <span style="font-size: 1.5em; font-weight: bold; color: ${severityColor};">
+                                ${(confidence * 100).toFixed(1)}%
+                            </span>
+                        </div>
+                        <div style="background: #e2e8f0; height: 40px; border-radius: 20px; overflow: hidden;">
+                            <div style="height: 100%; background: linear-gradient(90deg, ${severityColor} 0%, ${severityColor}dd 100%); 
+                                        width: ${(confidence * 100).toFixed(0)}%; display: flex; align-items: center; 
+                                        justify-content: flex-end; padding-right: 15px; color: white; font-weight: bold;
+                                        transition: width 0.8s ease;">
+                            </div>
+                        </div>
+                    </div>
+            `;
+
+            // Probability Breakdown
+            if (pred.probabilities) {
+                html += `
+                    <div style="background: var(--light); padding: 20px; border-radius: 12px; margin-bottom: 25px;">
+                        <h4 style="color: var(--dark); margin-bottom: 15px; font-size: 1.1em;">
+                            📊 Probability Breakdown
+                        </h4>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px;">
+                `;
+
+                Object.entries(pred.probabilities).forEach(([key, value]) => {
+                    const label = getPredictionLabel(key, pred.disease);
+                    const isHighest = value === Math.max(...Object.values(pred.probabilities));
+                    html += `
+                        <div style="background: white; padding: 15px; border-radius: 10px; text-align: center;
+                                    border: 2px solid ${isHighest ? severityColor : '#e2e8f0'};">
+                            <div style="font-size: 0.9em; color: var(--gray); margin-bottom: 8px;">${label}</div>
+                            <div style="font-size: 1.8em; font-weight: bold; color: ${isHighest ? severityColor : 'var(--dark)'};">
+                                ${(value * 100).toFixed(1)}%
+                            </div>
+                        </div>
+                    `;
+                });
+
+                html += `
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Clinical Interpretation
+            html += `
+                <div style="background: #ebf8ff; border-left: 4px solid var(--info); padding: 20px; 
+                            border-radius: 8px; margin-bottom: 25px;">
+                    <h4 style="color: var(--info); margin-bottom: 10px; display: flex; align-items: center; gap: 10px;">
+                        <span>🔍</span> Interpretasi Klinis
+                    </h4>
+                    <p style="color: var(--dark); line-height: 1.6; margin: 0;">
+                        ${getDetailedInterpretation(pred.disease, pred.prediction, confidence)}
+                    </p>
+                </div>
+            `;
+
+            // Recommendations Section
+            if (pred.recommendations) {
+                html += '<div style="margin-top: 30px;">';
+
+                // Immediate Actions
+                if (pred.recommendations.immediate_actions && pred.recommendations.immediate_actions.length > 0) {
+                    html += `
+                        <div style="background: #fff5f5; border-left: 4px solid var(--danger); padding: 20px; 
+                                    border-radius: 8px; margin-bottom: 20px;">
+                            <h3 style="color: var(--danger); margin-bottom: 15px; font-size: 1.3em; display: flex; align-items: center; gap: 10px;">
+                                <span>🚨</span> Tindakan Segera Required
+                            </h3>
+                            <ul style="list-style: none; padding: 0; margin: 0;">
+                                ${pred.recommendations.immediate_actions.map((action, index) => `
+                                    <li style="padding: 12px; background: white; border-radius: 8px; margin-bottom: 10px;
+                                               display: flex; align-items: flex-start; gap: 12px;">
+                                        <span style="background: var(--danger); color: white; width: 28px; height: 28px;
+                                                     border-radius: 50%; display: flex; align-items: center; justify-content: center;
+                                                     font-weight: bold; flex-shrink: 0;">${index + 1}</span>
+                                        <span style="color: var(--dark); line-height: 1.6; flex: 1;">${action}</span>
+                                    </li>
+                                `).join('')}
+                            </ul>
+                        </div>
+                    `;
+                }
+
+                // Diagnostic Tests
+                if (pred.recommendations.diagnostic_workup && pred.recommendations.diagnostic_workup.length > 0) {
+                    html += `
+                        <div style="background: var(--light); padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+                            <h3 style="color: var(--dark); margin-bottom: 15px; font-size: 1.2em; display: flex; align-items: center; gap: 10px;">
+                                <span>🔬</span> Recommended Diagnostic Tests
+                            </h3>
+                            <div style="display: grid; gap: 12px;">
+                                ${pred.recommendations.diagnostic_workup.slice(0, 5).map(test => `
+                                    <div style="background: white; padding: 15px; border-radius: 8px; border-left: 3px solid var(--info);">
+                                        <div style="font-weight: bold; color: var(--dark); margin-bottom: 5px;">
+                                            🧪 ${test.test || test}
+                                        </div>
+                                        ${test.purpose ? `<div style="font-size: 0.9em; color: var(--gray); margin-bottom: 5px;">${test.purpose}</div>` : ''}
+                                        ${test.target ? `<div style="font-size: 0.9em; color: var(--primary); font-weight: 500;">Target: ${test.target}</div>` : ''}
+                                        ${test.frequency ? `<div style="font-size: 0.85em; color: var(--gray);">Frequency: ${test.frequency}</div>` : ''}
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // Short-term Goals
+                if (pred.recommendations.short_term_goals && pred.recommendations.short_term_goals.length > 0) {
+                    html += `
+                        <div style="background: #f0fff4; border-left: 4px solid var(--success); padding: 20px; 
+                                    border-radius: 8px; margin-bottom: 20px;">
+                            <h3 style="color: var(--success); margin-bottom: 15px; font-size: 1.2em; display: flex; align-items: center; gap: 10px;">
+                                <span>🎯</span> Your Health Goals (1-3 months)
+                            </h3>
+                            ${pred.recommendations.short_term_goals.slice(0, 4).map(goal => `
+                                <div style="background: white; padding: 15px; border-radius: 8px; margin-bottom: 12px;">
+                                    <div style="font-weight: bold; color: var(--dark); margin-bottom: 8px;">
+                                        ✓ ${goal.goal || goal}
+                                    </div>
+                                    ${goal.timeframe ? `<div style="font-size: 0.9em; color: var(--gray);">⏱️ ${goal.timeframe}</div>` : ''}
+                                    ${goal.success_criteria ? `<div style="font-size: 0.9em; color: var(--success); margin-top: 5px;">Success: ${goal.success_criteria}</div>` : ''}
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                }
+
+                // Lifestyle Modifications
+                if (pred.recommendations.lifestyle_modifications) {
+                    const lifestyle = pred.recommendations.lifestyle_modifications;
+                    html += `
+                        <div style="background: #fffaf0; border-left: 4px solid var(--warning); padding: 20px; 
+                                    border-radius: 8px; margin-bottom: 20px;">
+                            <h3 style="color: var(--warning); margin-bottom: 15px; font-size: 1.2em; display: flex; align-items: center; gap: 10px;">
+                                <span>🥗</span> Lifestyle Modifications
+                            </h3>
+                    `;
+
+                    // Nutrition
+                    if (lifestyle.nutrition) {
+                        html += `
+                            <div style="background: white; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                                <h4 style="color: var(--dark); margin-bottom: 10px;">🍎 Nutrition</h4>
+                                ${lifestyle.nutrition.approach ? `<p style="color: var(--gray); margin-bottom: 10px;">${lifestyle.nutrition.approach}</p>` : ''}
+                                ${lifestyle.nutrition.specific_guidance ? `
+                                    <ul style="list-style: none; padding: 0; margin: 0;">
+                                        ${lifestyle.nutrition.specific_guidance.slice(0, 5).map(tip => `
+                                            <li style="padding: 8px 0; color: var(--dark); display: flex; align-items: start; gap: 10px;">
+                                                <span style="color: var(--success);">✓</span>
+                                                <span>${tip}</span>
+                                            </li>
+                                        `).join('')}
+                                    </ul>
+                                ` : ''}
+                            </div>
+                        `;
+                    }
+
+                    // Physical Activity
+                    if (lifestyle.physical_activity) {
+                        html += `
+                            <div style="background: white; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                                <h4 style="color: var(--dark); margin-bottom: 10px;">💪 Physical Activity</h4>
+                                ${lifestyle.physical_activity.prescription ? `<p style="color: var(--gray); margin-bottom: 10px; font-weight: 500;">${lifestyle.physical_activity.prescription}</p>` : ''}
+                                ${lifestyle.physical_activity.safety_precautions ? `
+                                    <div style="background: var(--light); padding: 10px; border-radius: 6px; margin-top: 10px;">
+                                        <strong style="color: var(--dark);">⚠️ Safety Precautions:</strong>
+                                        <ul style="margin: 10px 0 0 20px; color: var(--gray);">
+                                            ${lifestyle.physical_activity.safety_precautions.slice(0, 3).map(tip => `
+                                                <li style="margin: 5px 0;">${tip}</li>
+                                            `).join('')}
+                                        </ul>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        `;
+                    }
+
+                    // If array format (basic recommendations)
+                    if (Array.isArray(lifestyle)) {
+                        html += `
+                            <ul style="list-style: none; padding: 0; margin: 0;">
+                                ${lifestyle.slice(0, 6).map(mod => `
+                                    <li style="padding: 10px; background: white; border-radius: 8px; margin-bottom: 8px;
+                                               display: flex; align-items: start; gap: 10px;">
+                                        <span style="color: var(--success); font-size: 1.2em;">✓</span>
+                                        <span style="color: var(--dark); flex: 1;">${mod}</span>
+                                    </li>
+                                `).join('')}
+                            </ul>
+                        `;
+                    }
+
+                    html += '</div>';
+                }
+
+                // Warning Signs
+                if (pred.recommendations.warning_signs && pred.recommendations.warning_signs.length > 0) {
+                    html += `
+                        <div class="alert alert-warning">
+                            <div class="alert-icon" style="font-size: 2em;">⚠️</div>
+                            <div>
+                                <strong style="font-size: 1.1em;">Watch for These Warning Signs:</strong>
+                                <ul style="margin: 10px 0 0 20px; line-height: 1.8;">
+                                    ${pred.recommendations.warning_signs.slice(0, 4).map(sign => `
+                                        <li>${sign.sign || sign.details || sign}</li>
+                                    `).join('')}
+                                </ul>
+                                <p style="margin-top: 10px; font-size: 0.95em;">
+                                    If you experience any of these symptoms, contact your healthcare provider promptly.
+                                </p>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // Emergency Indicators
+                if (pred.recommendations.emergency_indicators && pred.recommendations.emergency_indicators.length > 0) {
+                    html += `
+                        <div class="alert alert-danger">
+                            <div class="alert-icon" style="font-size: 2em;">🚨</div>
+                            <div>
+                                <strong style="font-size: 1.1em;">CALL 911 IMMEDIATELY IF:</strong>
+                                <ul style="margin: 10px 0 0 20px; line-height: 1.8; font-weight: 500;">
+                                    ${pred.recommendations.emergency_indicators.slice(0, 3).map(indicator => `
+                                        <li>${indicator.emergency || indicator.signs || indicator}</li>
+                                    `).join('')}
+                                </ul>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // Specialist Referrals
+                if (pred.recommendations.specialist_referrals && pred.recommendations.specialist_referrals.length > 0) {
+                    html += `
+                        <div style="background: var(--light); padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+                            <h3 style="color: var(--dark); margin-bottom: 15px; font-size: 1.2em; display: flex; align-items: center; gap: 10px;">
+                                <span>👨‍⚕️</span> Recommended Specialists
+                            </h3>
+                            <div style="display: grid; gap: 12px;">
+                                ${pred.recommendations.specialist_referrals.map(ref => `
+                                    <div style="background: white; padding: 15px; border-radius: 8px; display: flex; align-items: start; gap: 12px;">
+                                        <span style="font-size: 2em;">🏥</span>
+                                        <div style="flex: 1;">
+                                            <div style="font-weight: bold; color: var(--dark); margin-bottom: 5px;">
+                                                ${ref.specialist || ref}
+                                            </div>
+                                            ${ref.when ? `<div style="font-size: 0.9em; color: var(--warning); font-weight: 500;">⏰ ${ref.when}</div>` : ''}
+                                            ${ref.purpose ? `<div style="font-size: 0.9em; color: var(--gray); margin-top: 5px;">${ref.purpose}</div>` : ''}
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                html += '</div>'; // Close recommendations section
+            }
+
+            html += '</div>'; // Close main card
+            return html;
+        }
+
+        // Generate Minimal Disease Card (for low-risk conditions)
+        function generateMinimalDiseaseCard(pred) {
+            const diseaseInfo = {
+                diabetes: { name: 'Diabetes', icon: '🩸' },
+                hypertension: { name: 'Hypertension', icon: '❤️' },
+                oral_cancer: { name: 'Oral Cancer', icon: '👄' }
+            };
+
+            const diseaseKey = normalizeDiseaseName(pred.disease);
+            const info = diseaseInfo[diseaseKey] || { name: pred.disease || 'Unknown', icon: '❓' };
+            const confidence = pred.confidence || 0;
+
+            return `
+                <div style="background: #f0fff4; border: 2px solid var(--success); border-radius: 10px; 
+                            padding: 15px; text-align: center;">
+                    <div style="font-size: 2em; margin-bottom: 8px;">${info.icon}</div>
+                    <div style="font-weight: bold; color: var(--dark); margin-bottom: 5px;">${info.name}</div>
+                    <div style="color: var(--success); font-weight: 600; font-size: 0.95em;">✓ Risiko Rendah</div>
+                    <div style="color: var(--gray); font-size: 0.85em; margin-top: 5px;">
+                        ${(confidence * 100).toFixed(0)}% kepercayaan
+                    </div>
+                </div>
+            `;
+        }
+
+        // Get Detailed Interpretation
+        function getDetailedInterpretation(disease, prediction, confidence) {
+            const normalizedDisease = normalizeDiseaseName(disease);
+            const pred = String(prediction).toLowerCase();
+
+            if (normalizedDisease === 'diabetes') {
+                if (pred === '2') {
+                    return `Based on your health profile and risk factors, our AI model predicts a <strong>${(confidence * 100).toFixed(1)}% likelihood of Type 2 Diabetes</strong>. This indicates elevated blood sugar levels that require medical evaluation and management. Key risk factors include BMI, family history, lifestyle habits, and age. It's important to schedule an appointment with an endocrinologist or your primary care physician within the next few days to confirm this assessment with proper blood glucose testing (fasting glucose and HbA1c). Early detection and treatment can prevent serious complications.`;
+                } else if (pred === '1') {
+                    return `Your results suggest <strong>prediabetes</strong> with ${(confidence * 100).toFixed(1)}% confidence. This means your blood sugar levels are higher than normal but not yet in the diabetes range. The good news is that prediabetes is often reversible through lifestyle modifications such as weight loss, dietary changes, and increased physical activity. Without intervention, prediabetes can progress to Type 2 diabetes within a few years. Consult your doctor about a prevention plan, which may include regular monitoring and possible medication.`;
+                }
+            } else if (normalizedDisease === 'hypertension') {
+                if (pred === '1') {
+                    return `Your cardiovascular risk profile suggests <strong>${(confidence * 100).toFixed(1)}% likelihood of hypertension</strong> (high blood pressure). This assessment is based on factors including age, BMI, cholesterol levels, family history, and lifestyle habits. Hypertension is often called the "silent killer" because it typically has no symptoms but can lead to serious complications including heart attack, stroke, and kidney disease. You should have your blood pressure measured by a healthcare professional and discuss whether treatment (lifestyle changes and/or medication) is needed. Target blood pressure is generally below 130/80 mmHg.`;
+                } else {
+                    return `Based on your current health profile, your cardiovascular risk factors appear within normal range with a ${(confidence * 100).toFixed(1)}% confidence level. Continue maintaining heart-healthy habits including regular exercise, a balanced diet low in sodium, stress management, and avoiding tobacco. Monitor your blood pressure regularly and maintain communication with your healthcare provider about your cardiovascular health.`;
+                }
+            } else if (normalizedDisease === 'oral_cancer') {
+                if (pred === 'yes') {
+                    return `<strong>IMPORTANT:</strong> Your risk assessment indicates a ${(confidence * 100).toFixed(1)}% likelihood of oral cancer risk based on factors including tobacco use, alcohol consumption, HPV status, oral symptoms, and family history. This does NOT mean you have cancer, but it indicates you have significant risk factors that require professional evaluation. Oral cancer is highly treatable when detected early. You should schedule an examination with an oral surgeon, ENT specialist, or oncologist as soon as possible for a thorough clinical examination and possible biopsy. Do not delay seeking medical attention, especially if you have persistent mouth sores, white/red patches, or unexplained bleeding.`;
+                }
+            }
+
+            return `Results indicate ${confidence > 0.7 ? 'high' : 'moderate'} confidence in this assessment based on your provided health information.`;
+        }
+
+        // Normalize disease name returned by API into internal key
+        function normalizeDiseaseName(disease) {
+            if (!disease) return '';
+            return String(disease).toLowerCase().trim().replace(/\s+/g, '_');
         }
 
         // Check if prediction is positive
@@ -1101,179 +1574,8 @@
             return false;
         }
 
-        // Generate Disease Card
-        function generateDiseaseCard(pred) {
-            const diseaseInfo = {
-                diabetes: { name: 'Diabetes', icon: '🩸' },
-                hypertension: { name: 'Hypertension', icon: '❤️' },
-                oral_cancer: { name: 'Oral Cancer', icon: '👄' }
-            };
-
-            const diseaseKey = normalizeDiseaseName(pred.disease);
-            const info = diseaseInfo[diseaseKey] || { name: pred.disease || 'Unknown', icon: '❓' };
-            const isPositive = checkIfPositive(pred);
-            const confidence = pred.confidence || 0;
-
-            let cardClass = 'negative';
-            let statusClass = 'status-negative';
-            let statusText = 'Low Risk';
-            let barClass = 'low';
-
-            if (isPositive) {
-                if (confidence > 0.7) {
-                    cardClass = 'positive';
-                    statusClass = 'status-positive';
-                    statusText = 'Detected';
-                    barClass = 'high';
-                } else {
-                    cardClass = 'warning';
-                    statusClass = 'status-warning';
-                    statusText = 'Moderate Risk';
-                    barClass = 'medium';
-                }
-            }
-
-            let html = `
-                <div class="disease-card ${cardClass}">
-                    <div class="disease-header">
-                        <div class="disease-name">
-                            <span class="disease-icon">${info.icon}</span>
-                            <span>${info.name}</span>
-                        </div>
-                        <div class="disease-status ${statusClass}">${statusText}</div>
-                    </div>
-                    
-                    <div class="disease-probability">
-                        <div class="probability-bar">
-                            <div class="probability-fill ${barClass}" style="width: ${(confidence * 100).toFixed(0)}%">
-                                ${(confidence * 100).toFixed(1)}% Confidence
-                            </div>
-                        </div>
-            `;
-
-            // Show probability breakdown if available
-            if (pred.probabilities) {
-                html += '<div class="probability-details">';
-                Object.entries(pred.probabilities).forEach(([key, value]) => {
-                    const label = getPredictionLabel(key, diseaseKey);
-                    html += `
-                        <div class="prob-item">
-                            <div class="prob-label">${label}</div>
-                            <div class="prob-value">${(value * 100).toFixed(0)}%</div>
-                        </div>
-                    `;
-                });
-                html += '</div>';
-            }
-
-            html += '</div>'; // Close probability div
-
-            // Interpretation
-            html += '<div style="margin: 15px 0; padding: 12px; background: white; border-radius: 8px;">';
-            html += `<strong>Interpretation:</strong><br>`;
-            html += getInterpretation(pred.disease, pred.prediction, confidence);
-            html += '</div>';
-
-            // Show recommendations if positive or moderate risk
-            if (isPositive && pred.recommendations) {
-                html += '<div class="recommendations-section">';
-
-                // Immediate Actions
-                if (pred.recommendations.immediate_actions && pred.recommendations.immediate_actions.length > 0) {
-                    html += `
-                        <div class="rec-category">
-                            <h4><span>🚨</span> Immediate Actions</h4>
-                            <ul class="rec-list">
-                                ${pred.recommendations.immediate_actions.slice(0, 3).map(action => `
-                                    <li class="rec-item">
-                                        <div class="rec-icon">▶️</div>
-                                        <div class="rec-text">${action}</div>
-                                    </li>
-                                `).join('')}
-                            </ul>
-                        </div>
-                    `;
-                }
-
-                // Lifestyle Modifications
-                if (pred.recommendations.lifestyle_modifications) {
-                    const lifestyle = pred.recommendations.lifestyle_modifications;
-                    html += '<div class="rec-category"><h4><span>🥗</span> Lifestyle Modifications</h4><ul class="rec-list">';
-
-                    if (Array.isArray(lifestyle)) {
-                        lifestyle.slice(0, 3).forEach(mod => {
-                            html += `
-                                <li class="rec-item">
-                                    <div class="rec-icon">✓</div>
-                                    <div class="rec-text">${mod}</div>
-                                </li>
-                            `;
-                        });
-                    } else if (lifestyle.nutrition && lifestyle.nutrition.specific_guidance) {
-                        lifestyle.nutrition.specific_guidance.slice(0, 3).forEach(tip => {
-                            html += `
-                                <li class="rec-item">
-                                    <div class="rec-icon">✓</div>
-                                    <div class="rec-text">${tip}</div>
-                                </li>
-                            `;
-                        });
-                    }
-
-                    html += '</ul></div>';
-                }
-
-                // Show more button
-                const hasMoreRecs = pred.recommendations.short_term_goals ||
-                    pred.recommendations.diagnostic_workup ||
-                    pred.recommendations.warning_signs;
-
-                if (hasMoreRecs) {
-                    html += `
-                        <button class="expand-btn" onclick="toggleExpand(this, 'recs-${pred.disease}')">
-                            Show More Recommendations
-                        </button>
-                        <div id="recs-${pred.disease}" class="expandable-content">
-                    `;
-
-                    // Short-term Goals
-                    if (pred.recommendations.short_term_goals && pred.recommendations.short_term_goals.length > 0) {
-                        html += '<div class="rec-category" style="margin-top: 15px;"><h4><span>🎯</span> Goals (1-3 months)</h4><ul class="rec-list">';
-                        pred.recommendations.short_term_goals.slice(0, 3).forEach(goal => {
-                            html += `
-                                <li class="rec-item">
-                                    <div class="rec-icon">📌</div>
-                                    <div class="rec-text">${goal.goal || goal}</div>
-                                </li>
-                            `;
-                        });
-                        html += '</ul></div>';
-                    }
-
-                    // Warning Signs
-                    if (pred.recommendations.warning_signs && pred.recommendations.warning_signs.length > 0) {
-                        html += '<div class="alert alert-warning" style="margin-top: 15px;">';
-                        html += '<div class="alert-icon">⚠️</div><div><strong>Warning Signs to Watch:</strong><ul style="margin-top: 10px; margin-left: 20px;">';
-                        pred.recommendations.warning_signs.slice(0, 3).forEach(sign => {
-                            html += `<li>${sign.sign || sign}</li>`;
-                        });
-                        html += '</ul></div></div>';
-                    }
-
-                    html += '</div>'; // Close expandable content
-                }
-
-                html += '</div>'; // Close recommendations section
-            }
-
-            html += '</div>'; // Close disease card
-            return html;
-        }
-
         // Get Prediction Label
         function getPredictionLabel(key, disease) {
-            // Normalize disease identifier (server may return 'Diabetes' etc.)
-            disease = String(disease || '').toLowerCase().replace(/\s+/g, '_');
             const labels = {
                 diabetes: {
                     '0': 'No Diabetes',
@@ -1281,7 +1583,7 @@
                     '2': 'Diabetes'
                 },
                 hypertension: {
-                    '0': 'Normal',
+                    '0': 'Normal BP',
                     '1': 'Hypertension'
                 },
                 oral_cancer: {
@@ -1290,55 +1592,7 @@
                 }
             };
 
-            return labels[disease]?.[String(key).toLowerCase()] || `Class ${key}`;
-        }
-
-        // Normalize disease name returned from API into internal key
-        function normalizeDiseaseName(disease) {
-            if (!disease) return '';
-            return String(disease).toLowerCase().trim().replace(/\s+/g, '_');
-        }
-
-        // Get Interpretation
-        function getInterpretation(disease, prediction, confidence) {
-            const pred = String(prediction).toLowerCase();
-            const diseaseKey = normalizeDiseaseName(disease);
-
-            if (diseaseKey === 'diabetes') {
-                if (pred === '2') {
-                    return `Based on your risk factors, the model indicates high likelihood of diabetes (Type 2). This requires medical evaluation and management. Schedule an appointment with your doctor soon.`;
-                } else if (pred === '1') {
-                    return `Your results suggest prediabetes - blood sugar levels higher than normal but not yet diabetes. This is reversible with lifestyle changes. Consult your doctor about prevention strategies.`;
-                } else {
-                    return `Your current risk factors suggest low likelihood of diabetes. Continue maintaining healthy lifestyle habits to keep your risk low.`;
-                }
-            } else if (diseaseKey === 'hypertension') {
-                if (pred === '1') {
-                    return `Your risk profile indicates potential hypertension (high blood pressure). This should be confirmed with proper blood pressure measurements. Consult your doctor for evaluation and management.`;
-                } else {
-                    return `Your cardiovascular risk factors appear within normal range. Continue heart-healthy habits to maintain good blood pressure.`;
-                }
-            } else if (diseaseKey === 'oral_cancer') {
-                if (pred === 'yes') {
-                    return `WARNING: Your risk factors and symptoms suggest increased oral cancer risk. This requires immediate medical attention. Schedule an examination with an oral surgeon or oncologist as soon as possible.`;
-                } else {
-                    return `Your oral cancer risk appears low based on current factors. Continue regular dental check-ups and maintain good oral hygiene. Avoid tobacco and excessive alcohol.`;
-                }
-            }
-
-            return `Results indicate ${confidence > 0.7 ? 'high' : 'moderate'} confidence in this assessment.`;
-        }
-
-        // Toggle Expand
-        function toggleExpand(button, contentId) {
-            const content = document.getElementById(contentId);
-            if (content.classList.contains('expanded')) {
-                content.classList.remove('expanded');
-                button.textContent = 'Show More Recommendations';
-            } else {
-                content.classList.add('expanded');
-                button.textContent = 'Show Less';
-            }
+            return labels[disease]?.[String(key).toLowerCase()] || `Class ${key} `;
         }
 
         // Display Error
@@ -1348,9 +1602,17 @@
                 <div class="alert alert-danger">
                     <div class="alert-icon">❌</div>
                     <div>
-                        <strong>Error:</strong><br>
+                        <strong>Assessment Error:</strong><br>
                         ${errorMsg}<br><br>
-                        Please make sure the API server is running and try again.
+                        <strong>Troubleshooting:</strong>
+                        <ul style="margin-top: 10px; margin-left: 20px;">
+                            <li>Ensure the API server is running on http://192.168.18.8:5000</li>
+                            <li>Check your network connection</li>
+                            <li>Verify all form fields are filled correctly</li>
+                        </ul>
+                        <button onclick="location.reload()" style="margin-top: 15px; padding: 10px 20px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer;">
+                            Reload Page
+                        </button>
                     </div>
                 </div>
             `;
@@ -1368,14 +1630,20 @@
                 }
             });
 
+            // Recalculate BMI with default values
+            calculateBMI();
+
             // Reset results
             document.getElementById('resultsContent').innerHTML = `
                 <div class="empty-state">
                     <div class="empty-state-icon">🩺</div>
-                    <h3>Ready for Assessment</h3>
-                    <p>Fill out the health questionnaire on the left and click "Analyze My Health" to receive your comprehensive health screening results.</p>
+                    <h3>Siap untuk Penilaian</h3>
+                    <p>Isi kuesioner kesehatan di sebelah kiri dan klik "Analisis Kesehatan Saya" untuk menerima hasil skrining kesehatan komprehensif Anda.</p>
                 </div>
             `;
+
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         // Refresh API status every 30 seconds

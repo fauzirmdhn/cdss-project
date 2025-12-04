@@ -438,7 +438,7 @@ def internal_error(error):
 
 if __name__ == '__main__':
     # Server configuration
-    HOST = '192.168.18.8'
+    HOST = '0.0.0.0'
     PORT = 5000
     
     print("\n" + "="*70)

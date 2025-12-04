@@ -2,3 +2,4 @@ cdss/
 datasets/
 models/
 *.png
+__pycache__/
