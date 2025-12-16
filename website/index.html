@@ -720,19 +720,72 @@
                     <div class="form-section">
                         <h3><span>💊</span> Status Kesehatan Saat Ini</h3>
                         <div class="form-group">
-                            <label for="GenHlth">Kesehatan Umum (1=Sangat Baik, 5=Buruk)</label>
-                            <input type="range" id="GenHlth" name="GenHlth" min="1" max="5" value="3">
-                            <span class="range-value">3</span>
+                            <label for="GenHlth">Kesehatan Umum (Kiri=Sangat Baik, Kanan=Sangat Buruk)</label>
+                            <div id="genHlthControl"
+                                style="display:flex; gap:8px; align-items:center; justify-content:center; flex-wrap:wrap; margin-top:8px;">
+                                <button type="button" class="genhlth-btn" data-value="1" title="Sangat Baik"
+                                    style="font-size:1.4em; padding:8px; border-radius:8px; background:transparent; border:2px solid transparent;">😄</button>
+                                <button type="button" class="genhlth-btn" data-value="2" title="Baik"
+                                    style="font-size:1.4em; padding:8px; border-radius:8px; background:transparent; border:2px solid transparent;">🙂</button>
+                                <button type="button" class="genhlth-btn" data-value="3" title="Cukup"
+                                    style="font-size:1.4em; padding:8px; border-radius:8px; background:transparent; border:2px solid transparent;">😐</button>
+                                <button type="button" class="genhlth-btn" data-value="4" title="Kurang"
+                                    style="font-size:1.4em; padding:8px; border-radius:8px; background:transparent; border:2px solid transparent;">😟</button>
+                                <button type="button" class="genhlth-btn" data-value="5" title="Buruk"
+                                    style="font-size:1.4em; padding:8px; border-radius:8px; background:transparent; border:2px solid transparent;">😢</button>
+                            </div>
+                            <input type="hidden" id="GenHlth" name="GenHlth" value="3">
                         </div>
                         <div class="form-group">
-                            <label for="MentHlth">Masalah Kesehatan Mental (hari dalam 30 terakhir)</label>
-                            <input type="range" id="MentHlth" name="MentHlth" min="0" max="30" value="0">
-                            <span class="range-value">0</span>
+                            <label for="MentHlth">Masalah Kesehatan Mental - Berapa hari dalam 30 hari terakhir Anda
+                                merasa kesehatan mental Anda terganggu?</label>
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <button type="button" class="step-decrease" data-target="MentHlth"
+                                    aria-label="Decrease MentHlth"
+                                    style="padding:6px 10px; border-radius:6px;">-</button>
+                                <input type="number" id="MentHlth" name="MentHlth" min="0" max="30" value="0"
+                                    style="width:72px; text-align:center; padding:8px; border:2px solid #e2e8f0; border-radius:6px;">
+                                <button type="button" class="step-increase" data-target="MentHlth"
+                                    aria-label="Increase MentHlth"
+                                    style="padding:6px 10px; border-radius:6px;">+</button>
+                                <div style="display:flex; gap:8px; margin-left:10px;">
+                                    <button type="button" class="preset-btn" data-target="MentHlth" data-value="0"
+                                        style="padding:6px 10px; border-radius:6px;">0</button>
+                                    <button type="button" class="preset-btn" data-target="MentHlth" data-value="7"
+                                        style="padding:6px 10px; border-radius:6px;">7</button>
+                                    <button type="button" class="preset-btn" data-target="MentHlth" data-value="14"
+                                        style="padding:6px 10px; border-radius:6px;">14</button>
+                                    <button type="button" class="preset-btn" data-target="MentHlth" data-value="30"
+                                        style="padding:6px 10px; border-radius:6px;">30</button>
+                                </div>
+                                <span class="range-value" id="MentHlthDisplay">0</span>
+                            </div>
                         </div>
+
                         <div class="form-group">
-                            <label for="PhysHlth">Masalah Kesehatan Fisik (hari dalam 30 terakhir)</label>
-                            <input type="range" id="PhysHlth" name="PhysHlth" min="0" max="30" value="0">
-                            <span class="range-value">0</span>
+                            <label for="PhysHlth">Masalah Kesehatan Fisik - Berapa hari dalam 30 hari terakhir Anda
+                                merasa kesehatan fisik Anda terganggu?</label>
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <button type="button" class="step-decrease" data-target="PhysHlth"
+                                    aria-label="Decrease PhysHlth"
+                                    style="padding:6px 10px; border-radius:6px;">-</button>
+                                <input type="number" id="PhysHlth" name="PhysHlth" min="0" max="30" value="0"
+                                    style="width:72px; text-align:center; padding:8px; border:2px solid #e2e8f0; border-radius:6px;">
+                                <button type="button" class="step-increase" data-target="PhysHlth"
+                                    aria-label="Increase PhysHlth"
+                                    style="padding:6px 10px; border-radius:6px;">+</button>
+                                <div style="display:flex; gap:8px; margin-left:10px;">
+                                    <button type="button" class="preset-btn" data-target="PhysHlth" data-value="0"
+                                        style="padding:6px 10px; border-radius:6px;">0</button>
+                                    <button type="button" class="preset-btn" data-target="PhysHlth" data-value="7"
+                                        style="padding:6px 10px; border-radius:6px;">7</button>
+                                    <button type="button" class="preset-btn" data-target="PhysHlth" data-value="14"
+                                        style="padding:6px 10px; border-radius:6px;">14</button>
+                                    <button type="button" class="preset-btn" data-target="PhysHlth" data-value="30"
+                                        style="padding:6px 10px; border-radius:6px;">30</button>
+                                </div>
+                                <span class="range-value" id="PhysHlthDisplay">0</span>
+                            </div>
                         </div>
                         <div class="form-group">
                             <div class="checkbox-group">
@@ -845,6 +898,71 @@
                 // Calculate initial BMI
                 calculateBMI();
             }
+
+            // Initialize steppers and presets for Mental/Physical Health
+            const stepIds = ['MentHlth', 'PhysHlth'];
+            stepIds.forEach(id => {
+                const input = document.getElementById(id);
+                const display = document.getElementById(id + 'Display');
+                if (!input || !display) return;
+
+                // Clamp and reflect value to display
+                const sync = (val) => {
+                    let v = parseInt(val) || 0;
+                    if (v < 0) v = 0;
+                    if (v > 30) v = 30;
+                    input.value = v;
+                    display.textContent = v;
+                };
+
+                input.addEventListener('input', (e) => sync(e.target.value));
+
+                // +/- buttons
+                document.querySelectorAll('.step-decrease').forEach(btn => {
+                    if (btn.dataset.target !== id) return;
+                    btn.addEventListener('click', () => { sync(parseInt(input.value || 0) - 1); });
+                });
+                document.querySelectorAll('.step-increase').forEach(btn => {
+                    if (btn.dataset.target !== id) return;
+                    btn.addEventListener('click', () => { sync(parseInt(input.value || 0) + 1); });
+                });
+
+                // Preset buttons
+                document.querySelectorAll('.preset-btn').forEach(p => {
+                    if (p.dataset.target !== id) return;
+                    p.addEventListener('click', () => { sync(p.dataset.value); });
+                });
+
+                // Initialize display
+                sync(input.value);
+            });
+            // Initialize GenHlth emoji selector
+            const genButtons = document.querySelectorAll('.genhlth-btn');
+            const genHidden = document.getElementById('GenHlth');
+            function updateGenButtons(selectedVal) {
+                genButtons.forEach(btn => {
+                    if (btn.dataset.value === String(selectedVal)) {
+                        btn.style.borderColor = 'var(--primary)';
+                        btn.style.background = 'rgba(102,126,234,0.08)';
+                        btn.setAttribute('aria-pressed', 'true');
+                    } else {
+                        btn.style.borderColor = 'transparent';
+                        btn.style.background = 'transparent';
+                        btn.setAttribute('aria-pressed', 'false');
+                    }
+                });
+            }
+
+            genButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const v = btn.dataset.value || '3';
+                    if (genHidden) genHidden.value = v;
+                    updateGenButtons(v);
+                });
+            });
+
+            // Set initial selected
+            if (genHidden && genHidden.value) updateGenButtons(genHidden.value);
         }
 
         // Calculate BMI
@@ -1623,11 +1741,19 @@
             document.getElementById('healthForm').reset();
 
             // Reset range values
+            // Reset range/number displays
             document.querySelectorAll('input[type="range"]').forEach(input => {
                 const valueSpan = input.nextElementSibling;
                 if (valueSpan && valueSpan.classList.contains('range-value')) {
                     valueSpan.textContent = input.value;
                 }
+            });
+            // Reset our steppers
+            ['MentHlth', 'PhysHlth'].forEach(id => {
+                const el = document.getElementById(id);
+                const disp = document.getElementById(id + 'Display');
+                if (el) el.value = '0';
+                if (disp) disp.textContent = '0';
             });
 
             // Recalculate BMI with default values
@@ -1641,6 +1767,14 @@
                     <p>Isi kuesioner kesehatan di sebelah kiri dan klik "Analisis Kesehatan Saya" untuk menerima hasil skrining kesehatan komprehensif Anda.</p>
                 </div>
             `;
+
+            // Reset GenHlth emoji selector to default (3)
+            const genHidden = document.getElementById('GenHlth');
+            if (genHidden) genHidden.value = '3';
+            const genButtons = document.querySelectorAll('.genhlth-btn');
+            genButtons.forEach(btn => { btn.style.borderColor = 'transparent'; btn.style.background = 'transparent'; btn.setAttribute('aria-pressed', 'false'); });
+            const defaultBtn = document.querySelector('.genhlth-btn[data-value="3"]');
+            if (defaultBtn) { defaultBtn.style.borderColor = 'var(--primary)'; defaultBtn.style.background = 'rgba(102,126,234,0.08)'; defaultBtn.setAttribute('aria-pressed', 'true'); }
 
             // Scroll to top
             window.scrollTo({ top: 0, behavior: 'smooth' });

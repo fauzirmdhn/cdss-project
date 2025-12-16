@@ -14,9 +14,9 @@ try:
     from recommendationsys import UltraAdvancedRecommendationEngine
     ADVANCED_RECS_AVAILABLE = True
     print("✓ Advanced recommendation engine loaded successfully")
-except ImportError:
+except ImportError as e:
     ADVANCED_RECS_AVAILABLE = False
-    print("⚠️ Advanced recommendation engine not found - using basic recommendations")
+    print(f"⚠️ Advanced recommendation engine not found {e} - using basic recommendations")
 
 app = Flask(__name__)
 CORS(app)
