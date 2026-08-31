@@ -118,7 +118,10 @@ def predict_disease(disease_name, input_data):
         for feature in feature_names:
             if feature not in df.columns:
                 missing_features.append(feature)
-                df[feature] = 0  # Default value for missing features
+                # Use NaN (not 0) for genuinely missing fields, so the trained
+                # imputer can fill them with a sensible learned median instead
+                # of an arbitrary, potentially implausible 0 (e.g. BMI=0, Age=0).
+                df[feature] = np.nan
         
         # Reorder columns to match training data
         df = df[feature_names]
@@ -133,12 +136,16 @@ def predict_disease(disease_name, input_data):
             try:
                 X_imputed = model_info['imputer'].transform(df)
             except Exception as e:
-                # Fallback: if imputer fails, attempt to fill with median per-column
+                # Fallback: if imputer fails, use 0 as a last resort
+                # (df.fillna(df.median()) is a no-op on a single-row request,
+                # since the median of one missing value is itself NaN)
                 print(f"Imputer error for {disease_name}: {e}")
-                X_imputed = df.fillna(df.median()).values
+                X_imputed = df.fillna(0).values
         else:
-            # If no imputer, fallback to filling NaNs with column median
-            X_imputed = df.fillna(df.median()).values
+            # No trained imputer shipped with this model - last-resort fallback.
+            # Every model trained via training.py saves an imputer, so this
+            # path should rarely trigger in practice.
+            X_imputed = df.fillna(0).values
 
         # Scale features
         X_scaled = scaler.transform(X_imputed)
@@ -170,6 +177,11 @@ def predict_disease(disease_name, input_data):
                     confidence=confidence,
                     patient_data=original_input
                 )
+                if recommendations is None:
+                    # Defensive check: the engine should always return a dict now,
+                    # but treat a None result as a failure rather than silently
+                    # reporting "advanced_recommendations_enabled": True with no data.
+                    raise ValueError(f"Recommendation engine returned no data for '{disease_name}'")
                 recommendations_available = True
             except Exception as e:
                 print(f"Error generating advanced recommendations: {str(e)}")
@@ -438,8 +450,12 @@ def internal_error(error):
 
 if __name__ == '__main__':
     # Server configuration
-    HOST = '0.0.0.0'
-    PORT = 5000
+    HOST = 'localhost'
+    PORT = int(os.environ.get('PORT', 5000))
+    # Flask's debugger allows arbitrary code execution if reachable on the network.
+    # Default to OFF; opt in explicitly for local development only, e.g.:
+    #   FLASK_DEBUG=1 python app.py
+    DEBUG = os.environ.get('FLASK_DEBUG', '0') == '1'
     
     print("\n" + "="*70)
     print("Disease Prediction API Server v2.0")
@@ -449,6 +465,7 @@ if __name__ == '__main__':
     print(f"Advanced recommendations: {'✓ ENABLED' if ADVANCED_RECS_AVAILABLE else '✗ DISABLED (using basic)'}")
     print(f"\nServer Host: {HOST}")
     print(f"Server Port: {PORT}")
+    print(f"Debug mode: {'ON (do not expose this publicly!)' if DEBUG else 'OFF'}")
     print("\nEndpoints:")
     print(f"  - http://{HOST}:{PORT}/ (API home)")
     print(f"  - http://{HOST}:{PORT}/health (health check)")
@@ -460,4 +477,4 @@ if __name__ == '__main__':
     print("="*70 + "\n")
     
     # Start the Flask development server
-    app.run(debug=True, host=HOST, port=PORT)
+    app.run(debug=DEBUG, host=HOST, port=PORT)

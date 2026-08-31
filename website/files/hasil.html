@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hasil Pemeriksaan — DiagnoseHub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <div class="app-shell">
+    <main class="device">
+
+      <header class="topbar topbar--plain">
+        <h1 class="topbar-title">Hasil Pemeriksaan</h1>
+        <span class="icon-btn icon-btn--muted" aria-hidden="true">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2l8 3v6c0 5-3.4 8.7-8 11-4.6-2.3-8-6-8-11V5l8-3Z" />
+          </svg>
+        </span>
+      </header>
+
+      <div class="results-body" id="result-content"></div>
+
+      <div class="btn-row">
+        <a href="index.html" class="btn btn-secondary">Ulangi Tes</a>
+        <button type="button" class="btn btn-primary" id="simpan-btn">Simpan Hasil</button>
+      </div>
+
+      <div class="toast" id="toast" role="status" aria-live="polite">Hasil berhasil disimpan</div>
+
+    </main>
+  </div>
+  <script src="script.js"></script>
+</body>
+
+</html>

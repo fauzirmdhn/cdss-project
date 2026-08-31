@@ -25,7 +25,7 @@ class DiseaseModelTrainer:
         self.class_names = None
         
     def load_and_preprocess(self, filepath, target_col):
-        """Load CSV and preprocess data"""
+        # Load CSV and preprocess data
         print(f"\n{'='*60}")
         print(f"Loading {self.disease_name} dataset...")
         print(f"{'='*60}")
@@ -34,22 +34,19 @@ class DiseaseModelTrainer:
         print(f"Dataset shape: {df.shape}")
         print(f"Columns: {list(df.columns)}")
         
-        # Handle missing values
         print(f"\nMissing values before cleaning:")
         print(df.isnull().sum()[df.isnull().sum() > 0])
         
         # Fill numeric columns with median, categorical with mode
         for col in df.columns:
             if df[col].dtype in ['float64', 'int64']:
-                df[col].fillna(df[col].median(), inplace=True)
+                df[col] = df[col].fillna(df[col].median())
             else:
-                df[col].fillna(df[col].mode()[0], inplace=True)
+                df[col] = df[col].fillna(df[col].mode()[0])
         
-        # Separate features and target
         X = df.drop(columns=[target_col])
         y = df[target_col]
         
-        # Encode string labels to numeric if needed
         if y.dtype == 'object':
             self.label_encoder = LabelEncoder()
             y = self.label_encoder.fit_transform(y)
@@ -57,10 +54,8 @@ class DiseaseModelTrainer:
         else:
             self.class_names = np.unique(y)
         
-        # Store feature names
         self.feature_names = X.columns.tolist()
         
-        # Encode categorical features in X if any
         for col in X.columns:
             if X[col].dtype == 'object':
                 le = LabelEncoder()
@@ -73,19 +68,16 @@ class DiseaseModelTrainer:
         return X, y
     
     def handle_imbalance(self, X_train, y_train, strategy='smote'):
-        """Handle class imbalance"""
+        # Class imbalance
         print(f"\nHandling class imbalance using {strategy.upper()}...")
         
         if strategy == 'smote':
-            # SMOTE for oversampling minority class
             smote = SMOTE(random_state=42)
             X_resampled, y_resampled = smote.fit_resample(X_train, y_train)
         elif strategy == 'undersample':
-            # Random undersampling of majority class
             rus = RandomUnderSampler(random_state=42)
             X_resampled, y_resampled = rus.fit_resample(X_train, y_train)
         elif strategy == 'combined':
-            # Combination of over and undersampling
             over = SMOTE(sampling_strategy=0.5, random_state=42)
             under = RandomUnderSampler(sampling_strategy=0.8, random_state=42)
             X_resampled, y_resampled = over.fit_resample(X_train, y_train)
@@ -99,7 +91,6 @@ class DiseaseModelTrainer:
         return X_resampled, y_resampled
     
     def train_model(self, X, y, balance_strategy='smote', test_size=0.2):
-        """Train the model with proper preprocessing"""
         
         # Split data
         X_train, X_test, y_train, y_test = train_test_split(
@@ -113,8 +104,6 @@ class DiseaseModelTrainer:
         X_train_balanced, y_train_balanced = self.handle_imbalance(
             X_train, y_train, strategy=balance_strategy
         )
-        
-        # Scale features
         # Impute missing values (fit on training data)
         self.imputer = SimpleImputer(strategy='median')
         X_train_imputed = self.imputer.fit_transform(X_train_balanced)
@@ -125,31 +114,27 @@ class DiseaseModelTrainer:
         X_train_scaled = self.scaler.fit_transform(X_train_imputed)
         X_test_scaled = self.scaler.transform(X_test_imputed)
         
-        # Train Random Forest (good for medical data)
         print(f"\nTraining Random Forest model...")
         self.model = RandomForestClassifier(
             n_estimators=200,
             max_depth=15,
             min_samples_split=10,
             min_samples_leaf=4,
-            class_weight='balanced',  # Additional handling for imbalance
+            class_weight='balanced',
             random_state=42,
             n_jobs=-1
         )
         
         self.model.fit(X_train_scaled, y_train_balanced)
         
-        # Cross-validation score
         cv_scores = cross_val_score(
             self.model, X_train_scaled, y_train_balanced, cv=5, scoring='accuracy'
         )
         print(f"Cross-validation accuracy: {cv_scores.mean():.4f} (+/- {cv_scores.std():.4f})")
         
-        # Predictions
         y_pred = self.model.predict(X_test_scaled)
         y_pred_proba = self.model.predict_proba(X_test_scaled)
         
-        # Evaluation
         print(f"\n{'='*60}")
         print(f"MODEL EVALUATION - {self.disease_name}")
         print(f"{'='*60}")
@@ -169,13 +154,11 @@ class DiseaseModelTrainer:
         print(f"\nConfusion Matrix:")
         print(cm)
         
-        # Feature Importance
         self.plot_feature_importance(top_n=15)
         
         return X_test_scaled, y_test, y_pred
     
     def plot_feature_importance(self, top_n=15):
-        """Plot feature importance"""
         if self.model and self.feature_names:
             importances = self.model.feature_importances_
             indices = np.argsort(importances)[-top_n:]
@@ -190,7 +173,7 @@ class DiseaseModelTrainer:
             print(f"\nFeature importance plot saved!")
     
     def save_model(self, model_dir='models'):
-        """Save trained model and preprocessing objects"""
+        # Save model
         import os
         os.makedirs(model_dir, exist_ok=True)
         
@@ -215,37 +198,27 @@ class DiseaseModelTrainer:
         print(f"\n✓ Model saved to {model_dir}/{model_name}_model.pkl")
     
     def predict(self, input_data):
-        """Make prediction on new data"""
-        # input_data should be a dictionary or DataFrame
         if isinstance(input_data, dict):
             input_data = pd.DataFrame([input_data])
         
-        # Ensure all features are present
         for feature in self.feature_names:
             if feature not in input_data.columns:
-                input_data[feature] = 0  # Default value
-        
-        # Reorder columns to match training data
+                input_data[feature] = 0
         input_data = input_data[self.feature_names]
 
-        # Convert inputs to numeric where possible so imputer can work
         for col in input_data.columns:
             input_data[col] = pd.to_numeric(input_data[col], errors='coerce')
 
-        # Impute missing values if imputer available
         if self.imputer:
             input_imputed = self.imputer.transform(input_data)
         else:
             input_imputed = input_data.values
 
-        # Scale
         input_scaled = self.scaler.transform(input_imputed)
         
-        # Predict
         prediction = self.model.predict(input_scaled)[0]
         probabilities = self.model.predict_proba(input_scaled)[0]
         
-        # Decode label if needed
         if self.label_encoder:
             prediction = self.label_encoder.inverse_transform([prediction])[0]
         
@@ -255,38 +228,30 @@ class DiseaseModelTrainer:
             'confidence': max(probabilities)
         }
 
-
-# ============================================================================
-# MAIN TRAINING SCRIPT
-# ============================================================================
-
 if __name__ == "__main__":
-    
-    # Configuration for each disease
     diseases = {
         'Diabetes': {
             'filepath': 'datasets/diabetes/diabetes_012_health_indicators_BRFSS2015.csv',
             'target_col': 'Diabetes_012',
-            'balance_strategy': 'smote'  # Good for 3-class imbalance
+            'balance_strategy': 'smote'
         },
         'Hypertension': {
             'filepath': 'datasets/hipertensi.csv',
             'target_col': 'target',
             'balance_strategy': 'smote'
         },
-        'Cervical Cancer': {
+        'Stroke': {
             'filepath': 'datasets/cervical-cancer/kag_risk_factors_cervical_cancer.csv',
             'target_col': 'Biopsy',
-            'balance_strategy': 'combined'  # Highly imbalanced usually
+            'balance_strategy': 'combined'
         },
-        'Oral Cancer': {
+        'Jantung Koroner': {
             'filepath': 'datasets/oral-cancer/oral_cancer_prediction_dataset.csv',
             'target_col': 'Oral Cancer (Diagnosis)',
             'balance_strategy': 'smote'
         }
     }
-    
-    # Train models for each disease
+
     trained_models = {}
     
     for disease_name, config in diseases.items():
@@ -295,33 +260,29 @@ if __name__ == "__main__":
             print(f"# TRAINING MODEL FOR: {disease_name}")
             print(f"{'#'*60}")
             
-            # Initialize trainer
             trainer = DiseaseModelTrainer(disease_name)
             
-            # Load and preprocess data
             X, y = trainer.load_and_preprocess(
                 config['filepath'], 
                 config['target_col']
             )
             
-            # Train model
             trainer.train_model(
                 X, y, 
                 balance_strategy=config['balance_strategy']
             )
             
-            # Save model
             trainer.save_model()
             
             trained_models[disease_name] = trainer
             
-            print(f"\n✓ {disease_name} model training completed successfully!")
+            print(f"\n{disease_name} model training completed successfully!")
             
         except FileNotFoundError:
-            print(f"\n✗ Error: Could not find {config['filepath']}")
-            print(f"   Please make sure the CSV file exists in the current directory.")
+            print(f"\nError: Could not find {config['filepath']}")
+            print(f"  Please make sure the CSV file exists in the current directory.")
         except Exception as e:
-            print(f"\n✗ Error training {disease_name} model: {str(e)}")
+            print(f"\nError training {disease_name} model: {str(e)}")
     
     print(f"\n\n{'='*60}")
     print(f"TRAINING SUMMARY")

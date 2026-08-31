@@ -30,6 +30,11 @@ class UltraAdvancedRecommendationEngine:
             'high': 0.80,
             'critical': 0.95
         }
+
+        # Diseases whose target is multi-class (e.g. diabetes: 0=none, 1=prediabetes,
+        # 2=diabetes) rather than a simple binary 0/1 "disease present" outcome.
+        # Used so prediction-severity logic doesn't assume '2' always means worst-case.
+        self.multiclass_diseases = {'diabetes'}
         
         # Clinical guideline thresholds
         self.clinical_targets = {
@@ -228,13 +233,10 @@ class UltraAdvancedRecommendationEngine:
         
         base_score = confidence
         
-        # Prediction adjustment
-        if prediction in ['2', 2, 'Yes', 'yes']:
-            base_score *= 1.0
-        elif prediction in ['1', 1]:
-            base_score *= 0.7
-        else:
-            base_score *= 0.3
+        # Prediction adjustment - handles binary diseases (0/1) and multi-class
+        # diseases (diabetes: 0/1/2) correctly, instead of assuming '2' is always
+        # the worst case (which previously under-weighted positive binary results).
+        base_score *= self._classify_prediction_severity(disease, prediction)
         
         # Age-based exponential adjustment
         age = patient_profile.get('age', 0)
@@ -409,6 +411,62 @@ class UltraAdvancedRecommendationEngine:
             'Milestone review and optimization',
             'Maintenance and monitoring phase'
         ]
+
+    def _classify_prediction_severity(self, disease: str, prediction) -> float:
+        """
+        Returns a 0.0-1.0 multiplier reflecting how severe a prediction is.
+
+        Previously this assumed the literal value '2' always meant "worst case",
+        which is correct for diabetes's 3-class target (0=none/1=prediabetes/2=diabetes)
+        but wrong for every binary disease (hypertension, cervical_cancer, oral_cancer),
+        where a positive case is encoded as '1'/'Yes' and was incorrectly getting a
+        0.7 multiplier instead of the full 1.0 it deserves.
+        """
+        pred_str = str(prediction).strip().lower()
+
+        if disease in self.multiclass_diseases:
+            if pred_str == '2':
+                return 1.0
+            elif pred_str == '1':
+                return 0.7
+            else:
+                return 0.3
+
+        # Binary disease: positive result = full severity weight
+        return 1.0 if pred_str in ('1', 'yes', 'true', 'positive') else 0.3
+
+    def _is_positive_prediction(self, disease: str, prediction) -> bool:
+        """Determine whether a prediction represents a 'disease present' outcome."""
+        pred_str = str(prediction).strip().lower()
+
+        if disease in self.multiclass_diseases:
+            return pred_str in ('1', '2')  # prediabetes or diabetes both count as positive
+
+        return pred_str in ('1', 'yes', 'true', 'positive')
+
+    def _generate_basic_insights(self, disease: str, profile: Dict, risk: Dict, severity: str) -> List[str]:
+        """
+        Generate personalized insight bullets for diseases that don't have a fully
+        custom insight generator (diabetes has its own, more detailed, _generate_diabetes_insights).
+        """
+        insights = []
+        disease_label = disease.replace('_', ' ').title()
+
+        insights.append(f"Your {disease_label} risk assessment came back as {severity.title()} priority.")
+
+        if profile.get('smoker'):
+            insights.append("Smoking is a significant risk factor here - quitting is one of the highest-impact changes you can make.")
+
+        if profile.get('cardiovascular_risk') in ('high', 'very_high'):
+            insights.append("Your overall cardiovascular risk factors compound this condition's risk - a combined care plan may help.")
+
+        if profile.get('age_group') in ('elderly', 'very_elderly'):
+            insights.append("Care plans are often adjusted for older adults - discuss what's realistic and sustainable with your provider.")
+
+        if risk.get('overall_score', 0) > 0.7:
+            insights.append("This assessment suggests prompt follow-up is worthwhile rather than waiting for your next routine visit.")
+
+        return insights
     
     def _ultra_advanced_diabetes_recommendations(
         self, 
@@ -1366,30 +1424,390 @@ class UltraAdvancedRecommendationEngine:
         
         return insights
     
-    def _ultra_advanced_hypertension_recommendations(self, prediction, confidence, patient_profile, risk_assessment, treatment_pathway, recommendations):
-        """Ultra-advanced hypertension recommendations"""
-        # Similar comprehensive structure as diabetes
-        # Abbreviated here for space - would include all same sections
-        pass
+    def _ultra_advanced_hypertension_recommendations(
+        self,
+        prediction: str,
+        confidence: float,
+        patient_profile: Dict,
+        risk_assessment: Dict,
+        treatment_pathway: Dict,
+        recommendations: Dict
+    ) -> Dict:
+        """Ultra-advanced hypertension-specific recommendations"""
+
+        severity = risk_assessment['severity_level']
+        age = patient_profile.get('age', 0)
+        cv_risk = patient_profile.get('cardiovascular_risk', 'low')
+        is_positive = self._is_positive_prediction('hypertension', prediction)
+
+        if is_positive:
+            if severity == 'CRITICAL':
+                recommendations['immediate_actions'] = [
+                    "🚨 URGENT: Seek emergency care if blood pressure exceeds 180/120 mmHg (hypertensive crisis)",
+                    "Recheck blood pressure with a validated home monitor",
+                    "Note any symptoms: severe headache, chest pain, shortness of breath, vision changes",
+                    "Do not drive yourself if experiencing symptoms - call emergency services",
+                    "Bring your current medication list to any urgent visit"
+                ]
+            elif severity == 'HIGH':
+                recommendations['immediate_actions'] = [
+                    "Schedule a physician appointment within 48-72 hours",
+                    "Begin home blood pressure monitoring (morning and evening)",
+                    "Reduce sodium intake immediately (<2,300mg/day, ideally <1,500mg)",
+                    "Review current medications for interactions affecting blood pressure"
+                ]
+            else:
+                recommendations['immediate_actions'] = [
+                    "Schedule a routine appointment with primary care within 1-2 weeks",
+                    "Begin tracking blood pressure 2-3x per week",
+                    "Start a sodium-aware food diary"
+                ]
+
+            recommendations['diagnostic_workup'] = [
+                {'test': 'Ambulatory/Home BP Monitoring', 'purpose': 'Confirm diagnosis, rule out white-coat hypertension', 'target': '<130/80 mmHg average', 'frequency': '2x daily for 1-2 weeks'},
+                {'test': 'Basic Metabolic Panel', 'purpose': 'Check kidney function and electrolytes', 'target': 'eGFR >60, normal electrolytes', 'frequency': 'Baseline, then annual'},
+                {'test': 'Lipid Panel', 'purpose': 'Assess cardiovascular risk', 'target': f'LDL <{100 if cv_risk in ("high", "very_high") else 130} mg/dL', 'frequency': 'Annual'},
+                {'test': 'ECG', 'purpose': 'Screen for cardiac strain/arrhythmia', 'target': 'Normal sinus rhythm', 'frequency': 'Baseline, repeat if symptomatic'},
+                {'test': 'Urinalysis', 'purpose': 'Screen for kidney damage (proteinuria)', 'target': 'No protein/blood', 'frequency': 'Annual'}
+            ]
+
+            if severity in ('CRITICAL', 'HIGH'):
+                recommendations['medication_considerations'] = [
+                    {'class': 'ACE inhibitors / ARBs', 'note': 'Often first-line, especially with diabetes or kidney disease (educational only - discuss with physician)'},
+                    {'class': 'Thiazide diuretics', 'note': 'Common first-line option, particularly in older adults'},
+                    {'class': 'Calcium channel blockers', 'note': 'Often used as monotherapy or in combination therapy'}
+                ]
+
+            recommendations['clinical_targets'] = {
+                'blood_pressure': '<130/80 mmHg',
+                'sodium_intake': '<2,300 mg/day',
+                'weight_loss_if_overweight': '5-10% of body weight'
+            }
+
+            recommendations['short_term_goals'] = [
+                "Reduce sodium intake to under 2,300mg/day within 2 weeks",
+                "Establish a consistent home blood pressure monitoring routine",
+                "Walk 20-30 minutes, 5 days per week"
+            ]
+
+            recommendations['long_term_management'] = [
+                "Achieve and maintain blood pressure below 130/80 mmHg",
+                "Adopt DASH diet principles long-term",
+                "Maintain a healthy weight (BMI 18.5-24.9)",
+                "Limit alcohol to moderate levels"
+            ]
+
+            recommendations['warning_signs'] = [
+                "Severe headache with no other explanation",
+                "Vision changes or blurred vision",
+                "Chest pain or shortness of breath",
+                "Numbness or weakness on one side of the body",
+                "Difficulty speaking"
+            ]
+
+            if severity == 'CRITICAL':
+                recommendations['emergency_indicators'] = [
+                    "Blood pressure reading above 180/120 mmHg",
+                    "Severe headache with confusion",
+                    "Signs of stroke (face drooping, arm weakness, speech difficulty)"
+                ]
+
+            recommendations['specialist_referrals'] = [
+                r for r in [
+                    "Cardiologist" if cv_risk in ('high', 'very_high') else None,
+                    "Nephrologist (if kidney function is abnormal)"
+                ] if r
+            ]
+
+            recommendations['monitoring_schedule'] = {
+                'blood_pressure': 'Daily (morning and evening) until stable, then 2-3x/week',
+                'weight': 'Weekly',
+                'follow_up_visit': '2-4 weeks' if severity in ('CRITICAL', 'HIGH') else '1-3 months'
+            }
+
+            recommendations['lifestyle_interventions'] = {
+                'diet': 'DASH diet - emphasize fruits, vegetables, whole grains, low-fat dairy; limit sodium and saturated fat',
+                'exercise': self._create_exercise_progression(patient_profile),
+                'stress_management': 'Consider mindfulness, meditation, or breathing exercises',
+                'sleep': 'Aim for 7-9 hours; screen for sleep apnea if snoring/daytime fatigue present'
+            }
+
+            recommendations['patient_education'] = [
+                "How to correctly measure blood pressure at home",
+                "Understanding your blood pressure numbers (systolic vs diastolic)",
+                "Recognizing signs of a hypertensive emergency"
+            ]
+
+        else:
+            recommendations['immediate_actions'] = [
+                "Continue routine blood pressure checks at annual physicals",
+                "Maintain current healthy lifestyle habits"
+            ]
+            recommendations['long_term_management'] = [
+                "Recheck blood pressure annually (or at every visit if over 40)",
+                "Maintain a healthy weight and regular physical activity"
+            ]
+            recommendations['monitoring_schedule'] = {
+                'blood_pressure': 'Annual screening'
+            }
+
+        recommendations['personalized_insights'] = self._generate_basic_insights(
+            'hypertension', patient_profile, risk_assessment, severity
+        )
+
+        return recommendations
     
-    def _ultra_advanced_cervical_cancer_recommendations(self, prediction, confidence, patient_profile, risk_assessment, treatment_pathway, recommendations):
-        """Ultra-advanced cervical cancer recommendations"""
-        pass
+    def _ultra_advanced_cervical_cancer_recommendations(
+        self,
+        prediction: str,
+        confidence: float,
+        patient_profile: Dict,
+        risk_assessment: Dict,
+        treatment_pathway: Dict,
+        recommendations: Dict
+    ) -> Dict:
+        """Ultra-advanced cervical cancer-specific recommendations"""
+
+        severity = risk_assessment['severity_level']
+        is_positive = self._is_positive_prediction('cervical_cancer', prediction)
+
+        if is_positive:
+            if severity in ('CRITICAL', 'HIGH'):
+                recommendations['immediate_actions'] = [
+                    "🚨 Schedule a gynecologic oncology consultation as soon as possible",
+                    "Request copies of all prior screening results (Pap smear, HPV test, colposcopy)",
+                    "Do not delay follow-up - early-stage cervical changes are highly treatable",
+                    "Bring a support person to appointments if possible"
+                ]
+            else:
+                recommendations['immediate_actions'] = [
+                    "Schedule a follow-up with a gynecologist within 2-4 weeks",
+                    "Request clarification on which screening test(s) returned abnormal results",
+                    "Avoid skipping the recommended follow-up interval"
+                ]
+
+            recommendations['diagnostic_workup'] = [
+                {'test': 'Colposcopy', 'purpose': 'Direct visual examination of the cervix with magnification', 'target': 'Identify abnormal tissue for biopsy', 'frequency': 'As scheduled by gynecologist'},
+                {'test': 'Cervical Biopsy', 'purpose': 'Confirm presence and grade of abnormal cells', 'target': 'Histopathologic diagnosis', 'frequency': 'Once, per colposcopy findings'},
+                {'test': 'HPV DNA Test', 'purpose': 'Identify high-risk HPV strains', 'target': 'Negative for high-risk types', 'frequency': 'Per follow-up protocol'},
+                {'test': 'Pelvic Exam', 'purpose': 'Assess for any palpable abnormalities', 'target': 'No abnormal findings', 'frequency': 'At each visit'}
+            ]
+
+            recommendations['short_term_goals'] = [
+                "Complete diagnostic workup (colposcopy/biopsy) within the recommended window",
+                "Understand staging and treatment options if diagnosis is confirmed"
+            ]
+
+            recommendations['long_term_management'] = [
+                "Follow the oncology/gynecology treatment plan if diagnosis is confirmed",
+                "Maintain regular follow-up screening per provider's schedule",
+                "Discuss HPV vaccination if not previously vaccinated (per age-appropriate guidance)"
+            ]
+
+            recommendations['warning_signs'] = [
+                "Abnormal vaginal bleeding (between periods, after intercourse, after menopause)",
+                "Unusual vaginal discharge",
+                "Pelvic pain not related to menstruation",
+                "Pain during intercourse"
+            ]
+
+            if severity == 'CRITICAL':
+                recommendations['emergency_indicators'] = [
+                    "Heavy, uncontrolled vaginal bleeding",
+                    "Severe pelvic pain"
+                ]
+
+            recommendations['specialist_referrals'] = ["Gynecologic Oncologist", "Gynecologist"]
+
+            recommendations['monitoring_schedule'] = {
+                'follow_up_visit': '2-4 weeks' if severity in ('CRITICAL', 'HIGH') else '1-3 months',
+                'repeat_screening': 'Per ASCCP guidelines based on biopsy result'
+            }
+
+            recommendations['patient_education'] = [
+                "Understanding Pap smear and HPV test results",
+                "What to expect during a colposcopy",
+                "HPV transmission and prevention"
+            ]
+
+        else:
+            recommendations['immediate_actions'] = [
+                "Continue routine cervical cancer screening per age-based guidelines"
+            ]
+            recommendations['long_term_management'] = [
+                "Pap smear every 3 years (ages 21-29) or Pap + HPV co-test every 5 years (ages 30-65)",
+                "Discuss HPV vaccination if not already received"
+            ]
+            recommendations['monitoring_schedule'] = {
+                'routine_screening': 'Per age-based cervical cancer screening guidelines'
+            }
+
+        recommendations['personalized_insights'] = self._generate_basic_insights(
+            'cervical_cancer', patient_profile, risk_assessment, severity
+        )
+
+        return recommendations
     
-    def _ultra_advanced_oral_cancer_recommendations(self, prediction, confidence, patient_profile, risk_assessment, treatment_pathway, recommendations):
-        """Ultra-advanced oral cancer recommendations"""
-        pass
+    def _ultra_advanced_oral_cancer_recommendations(
+        self,
+        prediction: str,
+        confidence: float,
+        patient_profile: Dict,
+        risk_assessment: Dict,
+        treatment_pathway: Dict,
+        recommendations: Dict
+    ) -> Dict:
+        """Ultra-advanced oral cancer-specific recommendations"""
+
+        severity = risk_assessment['severity_level']
+        is_positive = self._is_positive_prediction('oral_cancer', prediction)
+        smoker = patient_profile.get('smoker', 0)
+
+        if is_positive:
+            if severity in ('CRITICAL', 'HIGH'):
+                recommendations['immediate_actions'] = [
+                    "🚨 Schedule an oral surgeon / ENT (head & neck) consultation urgently",
+                    "Document any visible lesions with photos and note how long they've been present",
+                    "Avoid tobacco and alcohol completely starting now",
+                    "Request a referral for biopsy if not already scheduled"
+                ]
+            else:
+                recommendations['immediate_actions'] = [
+                    "Schedule a dental/ENT evaluation within 2-3 weeks",
+                    "Monitor any oral lesions for changes in size, color, or texture",
+                    "Avoid irritants: tobacco, alcohol, very spicy or acidic foods"
+                ]
+
+            recommendations['diagnostic_workup'] = [
+                {'test': 'Oral/Head & Neck Exam', 'purpose': 'Visual and physical inspection of mouth, throat, neck', 'target': 'Identify suspicious lesions', 'frequency': 'Initial visit'},
+                {'test': 'Tissue Biopsy', 'purpose': 'Confirm malignancy and histologic type', 'target': 'Definitive diagnosis', 'frequency': 'As indicated by exam'},
+                {'test': 'Imaging (CT/MRI)', 'purpose': 'Assess extent of disease if biopsy is positive', 'target': 'Accurately stage the disease', 'frequency': 'If biopsy confirms malignancy'}
+            ]
+
+            recommendations['short_term_goals'] = [
+                "Complete oral examination and biopsy if recommended",
+                "Eliminate tobacco and alcohol use immediately"
+            ]
+
+            recommendations['long_term_management'] = [
+                "Follow the oncology treatment plan if diagnosis is confirmed",
+                "Permanent tobacco and alcohol cessation",
+                "Routine dental check-ups every 6 months for lesion surveillance"
+            ]
+
+            recommendations['warning_signs'] = [
+                "A sore or ulcer in the mouth that doesn't heal within 2 weeks",
+                "White or red patches in the mouth",
+                "Unexplained bleeding in the mouth",
+                "Difficulty swallowing or a persistent sore throat",
+                "A lump or thickening in the cheek or neck",
+                "Numbness in the mouth or lips"
+            ]
+
+            if smoker:
+                recommendations['warning_signs'].append(
+                    "As a smoker, be especially vigilant - your risk of new or recurring lesions is meaningfully higher"
+                )
+
+            if severity == 'CRITICAL':
+                recommendations['emergency_indicators'] = [
+                    "Significant unexplained oral bleeding",
+                    "Sudden difficulty breathing or swallowing"
+                ]
+
+            recommendations['specialist_referrals'] = [
+                "Oral & Maxillofacial Surgeon", "ENT (Otolaryngologist)", "Oncologist (if malignancy confirmed)"
+            ]
+
+            recommendations['monitoring_schedule'] = {
+                'follow_up_visit': '2 weeks' if severity in ('CRITICAL', 'HIGH') else '4-6 weeks',
+                'oral_self_exam': 'Monthly'
+            }
+
+            recommendations['patient_education'] = [
+                "How to perform a monthly oral self-examination",
+                "Tobacco and alcohol cessation resources",
+                "Why early detection drives much better oral cancer outcomes"
+            ]
+
+        else:
+            recommendations['immediate_actions'] = [
+                "Continue routine dental check-ups (every 6 months)",
+                "Maintain good oral hygiene"
+            ]
+            recommendations['long_term_management'] = [
+                "Avoid tobacco and limit alcohol consumption",
+                "Routine dental screening for oral lesions"
+            ]
+            recommendations['monitoring_schedule'] = {
+                'routine_dental_exam': 'Every 6 months'
+            }
+            if smoker:
+                recommendations['warning_signs'] = [
+                    "As a smoker, watch for any new mouth sores, patches, or lumps and report them promptly"
+                ]
+
+        recommendations['personalized_insights'] = self._generate_basic_insights(
+            'oral_cancer', patient_profile, risk_assessment, severity
+        )
+
+        return recommendations
     
     def _add_comorbidity_management(self, disease, patient_profile, recommendations):
-        """Add recommendations for managing multiple conditions"""
+        """Add recommendations for managing multiple conditions together"""
+        notes = []
+
+        if patient_profile.get('high_bp') and disease != 'hypertension':
+            notes.append("You indicated high blood pressure - coordinate care with whoever manages your hypertension")
+        if patient_profile.get('high_chol'):
+            notes.append("Elevated cholesterol noted - make sure lipid management is part of your overall care plan")
+        if patient_profile.get('heart_disease'):
+            notes.append("Existing heart disease/heart attack history - cardiology input is recommended alongside this condition's management")
+        if patient_profile.get('cardiovascular_risk') in ('high', 'very_high'):
+            notes.append("Your cardiovascular risk is elevated - consider a combined risk-reduction plan covering all conditions together, not just this one")
+
+        if notes:
+            recommendations.setdefault('comorbidity_considerations', [])
+            recommendations['comorbidity_considerations'].extend(notes)
+
         return recommendations
     
     def _add_preventive_care(self, patient_profile, recommendations):
         """Add age-appropriate preventive care recommendations"""
+        age = patient_profile.get('age', 0)
+        preventive = []
+
+        if age >= 18:
+            preventive.append("Annual physical exam and blood pressure check")
+        if age >= 40:
+            preventive.append("Cholesterol screening at least every 4-6 years (more often if at risk)")
+            preventive.append("Diabetes screening every 3 years (more often if at risk)")
+        if age >= 45:
+            preventive.append("Colorectal cancer screening per current guidelines")
+        if age >= 50:
+            preventive.append("Discuss other age-appropriate cancer screenings with your provider")
+
+        if preventive:
+            recommendations.setdefault('preventive_care', [])
+            recommendations['preventive_care'].extend(preventive)
+
         return recommendations
     
     def _add_psychosocial_support(self, disease, risk_assessment, recommendations):
         """Add mental health and social support recommendations"""
+        severity = risk_assessment.get('severity_level', 'MINIMAL')
+        support = []
+
+        if severity in ('CRITICAL', 'HIGH'):
+            support.append("A new or serious diagnosis can be overwhelming - consider asking your care team about counseling or support groups")
+            support.append("Bring a trusted friend or family member to appointments for support and to help retain information")
+        if severity in ('MODERATE', 'HIGH', 'CRITICAL'):
+            support.append("Managing a health condition can affect mental health too - mention any anxiety or low mood to your provider")
+
+        if support:
+            recommendations.setdefault('psychosocial_support', [])
+            recommendations['psychosocial_support'].extend(support)
+
         return recommendations
 
 

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Skrining Kesehatan — Tentang Diri Anda</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app-shell">
+  <main class="device">
+
+    <header class="topbar">
+      <a href="index.html" class="icon-btn" aria-label="Kembali ke beranda">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+      </a>
+      <h1 class="topbar-title">Skrining Kesehatan</h1>
+      <span class="icon-btn icon-btn--muted" aria-hidden="true">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 3v6c0 5-3.4 8.7-8 11-4.6-2.3-8-6-8-11V5l8-3Z"/></svg>
+      </span>
+    </header>
+
+    <div class="progress-wrap">
+      <div class="progress-meta"><span>LANGKAH 1 DARI 4</span><span class="step-percent">25% Selesai</span></div>
+      <div class="progress-track"><div class="progress-fill" style="width:25%"></div></div>
+    </div>
+
+    <div class="section-head">
+      <h2>Tentang Diri Anda</h2>
+      <p>Lengkapi data dasar untuk perhitungan indeks massa tubuh.</p>
+    </div>
+
+    <div class="fields">
+
+      <div class="field">
+        <label class="field-label" for="usia">Usia Anda (Tahun)</label>
+        <div class="stepper">
+          <button type="button" class="stepper-btn" data-action="dec" aria-label="Kurangi usia">−</button>
+          <span class="stepper-value" id="usia-value">45</span>
+          <button type="button" class="stepper-btn" data-action="inc" aria-label="Tambah usia">+</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <span class="field-label">Jenis Kelamin</span>
+        <div class="segmented segmented--gender" role="radiogroup" aria-label="Jenis Kelamin">
+          <button type="button" class="segmented-option is-active" data-value="laki-laki">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M6 21v-1a6 6 0 0 1 12 0v1"/></svg>
+            Laki-laki
+          </button>
+          <button type="button" class="segmented-option" data-value="perempuan">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M6 21v-1a6 6 0 0 1 12 0v1"/></svg>
+            Perempuan
+          </button>
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label class="field-label" for="berat">Berat Badan (kg)</label>
+          <input type="number" id="berat" class="text-input" value="70" inputmode="numeric" min="1">
+        </div>
+        <div class="field">
+          <label class="field-label" for="tinggi">Tinggi Badan (cm)</label>
+          <input type="number" id="tinggi" class="text-input" value="165" inputmode="numeric" min="1">
+        </div>
+      </div>
+
+      <div class="bmi-card" id="bmi-card">
+        <span class="bmi-circle" id="bmi-circle">25.7</span>
+        <div class="bmi-info">
+          <div class="bmi-info-top">
+            <strong>BMI Anda: <span id="bmi-label">Berlebih (Overweight)</span></strong>
+            <span class="tag tag--warning" id="bmi-tag">SEDANG</span>
+          </div>
+          <p id="bmi-desc">Sedikit di atas rentang ideal. Jaga pola makan sehat.</p>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="btn-row">
+      <a href="index.html" class="btn btn-secondary">Kembali</a>
+      <a href="step2.html" class="btn btn-primary">Lanjut</a>
+    </div>
+
+  </main>
+</div>
+<script src="script.js"></script>
+</body>
+</html>

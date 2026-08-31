@@ -3,3 +3,4 @@ datasets/
 models/
 *.png
 __pycache__/
+beda/
